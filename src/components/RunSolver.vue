@@ -366,6 +366,24 @@ const checkConfig = (
     return "Effective stack is be an integer";
   }
 
+  if ( config.bubbleFactorOption ) {
+    if ( config.oopBubbleFactor == 0 || 
+        config.ipBubbleFactor  == 0 || 
+        config.oopBubbleFactor >  100.0 || 
+        config.ipBubbleFactor  >  100.0 || 
+        config.oopBubbleFactor < -100.0 || 
+        config.ipBubbleFactor  < -100.0 ||
+        Number.isNaN(config.oopBubbleFactor) ||
+        Number.isNaN(config.ipBubbleFactor)
+      )
+    {
+      return "Bubble Factor value is wrong.";
+    }
+  }else{
+    config.oopBubbleFactor = 1.0;
+    config.ipBubbleFactor  = 1.0;
+  }  
+
   const betConfig = [
     { s: config.oopFlopBetSanitized, kind: "OOP flop bet" },
     { s: config.oopFlopRaiseSanitized, kind: "OOP flop raise" },
@@ -556,37 +574,45 @@ const buildTree = async () => {
   isTreeBuilding.value = true;
   treeStatus.value = "Building tree...";
 
-  const errorString = await invokes.gameInit(
-    tmpConfig.board,
-    tmpConfig.startingPot,
-    tmpConfig.effectiveStack,
-    tmpConfig.rakePercent / 100,
-    tmpConfig.rakeCap,
-    tmpConfig.donkOption,
-    convertBetString(tmpConfig.oopFlopBet),
-    convertBetString(tmpConfig.oopFlopRaise),
-    convertBetString(tmpConfig.oopTurnBet),
-    convertBetString(tmpConfig.oopTurnRaise),
-    tmpConfig.donkOption ? convertBetString(tmpConfig.oopTurnDonk) : "",
-    convertBetString(tmpConfig.oopRiverBet),
-    convertBetString(tmpConfig.oopRiverRaise),
-    tmpConfig.donkOption ? convertBetString(tmpConfig.oopRiverDonk) : "",
-    convertBetString(tmpConfig.ipFlopBet),
-    convertBetString(tmpConfig.ipFlopRaise),
-    convertBetString(tmpConfig.ipTurnBet),
-    convertBetString(tmpConfig.ipTurnRaise),
-    convertBetString(tmpConfig.ipRiverBet),
-    convertBetString(tmpConfig.ipRiverRaise),
-    tmpConfig.addAllInThreshold / 100,
-    tmpConfig.forceAllInThreshold / 100,
-    tmpConfig.mergingThreshold / 100,
-    tmpConfig.addedLines,
-    tmpConfig.removedLines
-  );
+  try{
+    const errorString = await invokes.gameInit(
+      tmpConfig.board,
+      tmpConfig.startingPot,
+      tmpConfig.effectiveStack,
+      tmpConfig.rakePercent / 100,
+      tmpConfig.rakeCap,
+      tmpConfig.oopBubbleFactor,
+      tmpConfig.ipBubbleFactor,
+      tmpConfig.donkOption,
+      convertBetString(tmpConfig.oopFlopBet),
+      convertBetString(tmpConfig.oopFlopRaise),
+      convertBetString(tmpConfig.oopTurnBet),
+      convertBetString(tmpConfig.oopTurnRaise),
+      tmpConfig.donkOption ? convertBetString(tmpConfig.oopTurnDonk) : "",
+      convertBetString(tmpConfig.oopRiverBet),
+      convertBetString(tmpConfig.oopRiverRaise),
+      tmpConfig.donkOption ? convertBetString(tmpConfig.oopRiverDonk) : "",
+      convertBetString(tmpConfig.ipFlopBet),
+      convertBetString(tmpConfig.ipFlopRaise),
+      convertBetString(tmpConfig.ipTurnBet),
+      convertBetString(tmpConfig.ipTurnRaise),
+      convertBetString(tmpConfig.ipRiverBet),
+      convertBetString(tmpConfig.ipRiverRaise),
+      tmpConfig.addAllInThreshold / 100,
+      tmpConfig.forceAllInThreshold / 100,
+      tmpConfig.mergingThreshold / 100,
+      tmpConfig.addedLines,
+      tmpConfig.removedLines);
 
-  if (errorString) {
+      if (errorString) {
+        isTreeBuilding.value = false;
+        treeStatus.value = "Error: " + errorString;
+        return;
+      }
+
+  }catch(e:unknown){
     isTreeBuilding.value = false;
-    treeStatus.value = "Error: " + errorString;
+    treeStatus.value = "Error: " + e
     return;
   }
 

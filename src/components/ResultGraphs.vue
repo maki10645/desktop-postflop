@@ -60,7 +60,7 @@ import {
 } from "../result-types";
 
 import {
-  Chart,
+  Chart as ChartJS,
   ChartData,
   ChartOptions,
   LineController,
@@ -77,7 +77,7 @@ import {
 import { Line as LineChart } from "vue-chartjs";
 import ResultTable from "./ResultTable.vue";
 
-Chart.register(
+ChartJS.register(
   LineController,
   LineElement,
   PointElement,
@@ -87,8 +87,8 @@ Chart.register(
   Tooltip
 );
 
-Chart.defaults.font.size = 14;
-Chart.defaults.font.family =
+ChartJS.defaults.font.size = 14;
+ChartJS.defaults.font.family =
   "system-ui, 'Noto Sans', 'Open Sans', Roboto, sans-serif";
 
 const sky500 = "#0ea5e9";
@@ -259,7 +259,7 @@ const chartOptions = computed((): ChartOptions<"line"> => {
     scales: {
       x: {
         type: "linear",
-        ticks: { format: formatX },
+        //ticks: { format: formatX },
         afterFit(axis) {
           chartWidth.value = axis.width;
         },
@@ -268,9 +268,7 @@ const chartOptions = computed((): ChartOptions<"line"> => {
         min: content === "eq" ? 0 : undefined,
         max: content === "eq" ? 1 : undefined,
         suggestedMin: content === "ev" ? 0 : undefined,
-        ticks: {
-          format: formatY,
-        },
+        //ticks: { format: formatY, },
         afterFit(axis) {
           axis.width = 52;
         },

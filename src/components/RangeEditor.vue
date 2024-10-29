@@ -49,7 +49,7 @@
       <div class="mt-5">
         <div class="flex">
           <input
-            v-model="rangeText"
+            v-model="store.rangeText[props.player]"
             type="text"
             :class="
               'flex-grow mr-6 px-2 py-1 rounded-lg text-sm ' +
@@ -105,8 +105,8 @@
         </div>
 
         <span class="inline-block ml-auto">
-          {{ numCombos.toFixed(1) }} combos ({{
-            ((numCombos * 100) / ((52 * 51) / 2)).toFixed(1)
+          {{ store.rangeCombos[props.player].toFixed(1) }} combos ({{
+            ((store.rangeCombos[props.player] * 100) / ((52 * 51) / 2)).toFixed(1)
           }}%)
         </span>
       </div>
@@ -116,8 +116,8 @@
       <DbItemPicker
         store-name="ranges"
         :index="player"
-        :value="rangeText"
-        :allow-save="rangeText !== '' && rangeTextError === ''"
+        :value="store.rangeText[props.player]"
+        :allow-save="store.rangeText[props.player] !== '' && rangeTextError === ''"
         :hide-import-export="player >= 2"
         @load-item="loadRange"
       />
@@ -157,10 +157,12 @@ const emit = defineEmits<{
 }>();
 
 const store = useStore();
-const rangeText = ref(props.defaultText);
+//const rangeText = ref(props.defaultText);
+store.rangeText[props.player] = "";
 const rangeTextError = ref("");
 const weight = ref(100);
-const numCombos = ref(0);
+//const numCombos = ref(0);
+store.rangeCombos[props.player] = 0;
 
 let draggingMode: DraggingMode = "none";
 
@@ -179,8 +181,8 @@ const cellValue = (row: number, col: number) => {
 };
 
 const onUpdate = async () => {
-  rangeText.value = await invokes.rangeToString(props.player);
-  numCombos.value = await invokes.rangeNumCombos(props.player);
+  store.rangeText[props.player] = await invokes.rangeToString(props.player);
+  store.rangeCombos[props.player] = await invokes.rangeNumCombos(props.player);
   rangeTextError.value = "";
 };
 
@@ -192,7 +194,7 @@ const update = async (row: number, col: number, weight: number) => {
 };
 
 const onRangeTextChange = async () => {
-  const trimmed = rangeText.value.replace(trimRegex, "$1").trim();
+  const trimmed = store.rangeText[props.player].replace(trimRegex, "$1").trim();
   const ranges = trimmed.split(",");
 
   if (ranges[ranges.length - 1] === "") {
@@ -252,10 +254,10 @@ const onWeightChange = () => {
 const clearRange = async () => {
   await invokes.rangeClear(props.player);
   store.ranges[props.player].fill(0);
-  rangeText.value = "";
+  store.rangeText[props.player] = "";
   rangeTextError.value = "";
   weight.value = 100;
-  numCombos.value = 0;
+  store.rangeCombos[props.player] = 0;
 };
 
 const invertRange = async () => {
@@ -267,7 +269,8 @@ const invertRange = async () => {
 };
 
 const loadRange = (rangeStr: unknown) => {
-  rangeText.value = String(rangeStr);
+  store.rangeText[props.player] = String(rangeStr);
   onRangeTextChange();
 };
+
 </script>

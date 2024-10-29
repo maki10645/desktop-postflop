@@ -72,7 +72,7 @@
             @click="editRange(i - 1)"
           />
           <input
-            v-model="rangeTexts[i - 1]"
+            v-model="store.rangeText[i + 1]"
             type="text"
             :class="
               'w-44 mt-3 px-2 py-1 rounded-lg text-sm ' +
@@ -82,10 +82,10 @@
             @change="onRangeTextChange(i - 1)"
           />
           <div class="mt-2 text-center">
-            {{ numCombos[i - 1].toFixed(1) }} combos ({{
-              numCombos[i - 1] >= 0.9995 * ((52 * 51) / 2)
+            {{ store.rangeCombos[i + 1].toFixed(1) }} combos ({{
+              store.rangeCombos[i + 1] >= 0.9995 * ((52 * 51) / 2)
                 ? "100"
-                : ((numCombos[i - 1] * 100) / ((52 * 51) / 2)).toFixed(1)
+                : ((store.rangeCombos[i + 1] * 100) / ((52 * 51) / 2)).toFixed(1)
             }}%)
           </div>
           <div class="flex mt-3 w-full justify-center gap-3">
@@ -103,7 +103,7 @@
         <button
           class="button-base button-blue"
           :disabled="
-            numCombos.every((x) => x === 0) ||
+            store.rangeCombos.slice(2,6).every((x) => x === 0) ||
             store.isBunchingRunning ||
             store.isSolverRunning ||
             numThreads < 1 ||
@@ -162,7 +162,7 @@
           RAM usage:
           {{
             ["-", "60MB", "60MB", "190MB", "3.5GB"][
-              numCombos.filter((x) => x > 0).length
+            store.rangeCombos.slice(2,5).filter((x) => x > 0).length
             ]
           }}
         </span>
@@ -219,10 +219,18 @@ const configStore = useConfigStore();
 const numThreads = ref(navigator.hardwareConcurrency || 1);
 
 const editingPlayer = ref(-1);
-const rangeTexts = ref(["", "", "", ""]);
+//const rangeTexts = ref(["", "", "", ""]);
 const isRangeTextError = ref([false, false, false, false]);
-const numCombos = ref([0, 0, 0, 0]);
+//const numCombos = ref([0, 0, 0, 0]);
 const rangeTextCopy = ref("");
+store.rangeText[2] = "";
+store.rangeText[3] = "";
+store.rangeText[4] = "";
+store.rangeText[5] = "";
+store.rangeCombos[2] = 0;
+store.rangeCombos[3] = 0;
+store.rangeCombos[4] = 0;
+store.rangeCombos[5] = 0;
 
 const statusText = ref("No bunching data");
 const flopCopy = ref<number[]>([]);
@@ -243,8 +251,8 @@ const onUpdate = async (player: number) => {
 };
 
 const onUpdateLocal = async (player: number) => {
-  rangeTexts.value[player] = await invokes.rangeToString(player + 2);
-  numCombos.value[player] = await invokes.rangeNumCombos(player + 2);
+  store.rangeText[player+2] = await invokes.rangeToString(player + 2);
+  store.rangeCombos[player+2] = await invokes.rangeNumCombos(player + 2);
 };
 
 const editRange = async (player: number) => {
@@ -254,7 +262,7 @@ const editRange = async (player: number) => {
 };
 
 const onRangeTextChange = async (player: number) => {
-  const trimmed = rangeTexts.value[player].replace(trimRegex, "$1").trim();
+  const trimmed = store.rangeText[player+2].replace(trimRegex, "$1").trim();
   const ranges = trimmed.split(",");
 
   if (ranges[ranges.length - 1] === "") {
@@ -368,7 +376,7 @@ const saveEdit = async () => {
 };
 
 const cancelEdit = async () => {
-  rangeTexts.value[editingPlayer.value] = rangeTextCopy.value;
+  store.rangeText[editingPlayer.value] = rangeTextCopy.value;
   await invokes.rangeFromString(editingPlayer.value + 2, rangeTextCopy.value);
   await onUpdate(editingPlayer.value);
   store.headers["bunching"].pop();

@@ -100,6 +100,98 @@
           </div>
         </div>
 
+        <!-- bubble factor -->
+        <div class="mt-6">
+          <div class="flex">
+            <span class="font-semibold">Bubble Factor</span>
+            <label class="inline-block ml-6">
+              <input
+                v-model="config.bubbleFactorOption"
+                type="checkbox"
+                class="mr-1 align-middle rounded cursor-pointer peer"
+              />
+              <span class="cursor-pointer peer-disabled:cursor-not-allowed">
+                Calculate EV with Bubble Factor
+              </span>
+            </label>
+            <div class="flex flex-grow justify-center">
+              <Tippy
+                class="inline-block cursor-help text-gray-600"
+                max-width="500px"
+                trigger="mouseenter click"
+                placement="bottom"
+                :delay="[200, 0]"
+                :interactive="true"
+              >
+                <QuestionMarkCircleIcon class="inline w-5 h-5" />
+                <div class="inline-block ml-0.5 text-sm underline">
+                  What's this?
+                </div>
+                <template #content>
+                  <div class="px-1 py-0.5 text-justify">
+                    If Enabled, Bubble factor is taken into account when calculating EV.
+                    In practice, the reciprocal of the entered number is used as the coefficient for the amount of pot win.
+                    &quot;1.0&quot; means the same as chip EV, and &quot;0.0&quot; is NOT valid value.
+                  </div>
+                </template>
+              </Tippy>
+            </div>
+          </div>
+
+          <div v-if="config.bubbleFactorOption" class="flex gap-5">
+            <div>
+              <div class="my-1">
+                <span class="inline-block w-14">OOP:</span>
+                <input 
+                    v-model="config.oopBubbleFactor"
+                    type="number"
+                    min="-100"
+                    max="100"
+                    step="0.01"
+                    :class="
+                    'w-24 px-2 py-1 rounded-lg text-sm ' +
+                     ( config.oopBubbleFactor == 0 || config.oopBubbleFactor > 100 || config.oopBubbleFactor < -100
+                    ? 'input-error'
+                    : '')
+                    "/>
+              </div>
+            </div>
+
+            <div>
+              <div class="my-1">
+                <span class="inline-block w-4"></span>
+                <span class="inline-block w-14">IP:</span>
+                <input 
+                    v-model="config.ipBubbleFactor"
+                    type="number"
+                    min="-100"
+                    max="100"
+                    step="0.01"
+                    :class="
+                    'w-24 px-2 py-1 rounded-lg text-sm ' +
+                     (config.ipBubbleFactor == 0 || config.ipBubbleFactor > 100 || config.ipBubbleFactor < -100
+                    ? 'input-error'
+                    : '')
+                    "/>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div
+          v-if="errorBubbleFactor.length > 0"
+          class="flex font-semibold text-red-500"
+        >
+          <div class="underline">Error:</div>
+          <div class="ml-2">
+            <div v-for="error in errorBubbleFactor" :key="error">
+              {{ error }}
+            </div>
+          </div>
+        </div>
+        <!-- bubble factor -->
+
         <div class="mt-6">
           <div class="flex">
             <span class="font-semibold">OOP bet sizes</span>
@@ -761,6 +853,9 @@ type ConfigValue = {
   effectiveStack: number;
   rakePercent: number;
   rakeCap: number;
+  bubbleFactorOption: number;
+  oopBubbleFactor: number;
+  ipBubbleFactor: number;
   donkOption: number;
   oopFlopBet: string;
   oopFlopRaise: string;
@@ -799,11 +894,26 @@ const addedLinesArray = computed(() =>
     : config.addedLines.split(",").map(readableLineString)
 );
 
-const removedLinesArray = computed(() =>
+const removedLinesArray = computed(() => 
   config.removedLines === ""
     ? []
     : config.removedLines.split(",").map(readableLineString)
 );
+
+const errorBubbleFactor = computed(() => {
+  const errors: string[] = [];
+  if ( config.oopBubbleFactor == 0.0 || config.ipBubbleFactor == 0.0 ) {
+    errors.push("Bubble Factor value must not be 0.0.");
+  }
+  if ( config.oopBubbleFactor >  100.0 || 
+       config.ipBubbleFactor  >  100.0 || 
+       config.oopBubbleFactor < -100.0 || 
+       config.ipBubbleFactor  < -100.0  )
+  {
+    errors.push("Bubble Factor values must be between -100 and 100.");
+  }
+  return errors;
+});
 
 const errorBasics = computed(() => {
   const errors: string[] = [];
@@ -936,10 +1046,13 @@ const isInputValid = computed(
 );
 
 const clearConfig = () => {
-  config.startingPot = 0;
-  config.effectiveStack = 0;
+  config.startingPot = 27;
+  config.effectiveStack = 270;
   config.rakePercent = 0;
   config.rakeCap = 0;
+  config.bubbleFactorOption = false;
+  config.oopBubbleFactor = 1.0;
+  config.ipBubbleFactor = 1.0;
   config.donkOption = false;
   config.oopFlopBet = "";
   config.oopFlopRaise = "";
@@ -987,6 +1100,9 @@ const dbValue = computed(
     effectiveStack: config.effectiveStack,
     rakePercent: config.rakePercent,
     rakeCap: config.rakeCap,
+    bubbleFactorOption: Number(config.bubbleFactorOption),
+    oopBubbleFactor: config.oopBubbleFactor,
+    ipBubbleFactor: config.ipBubbleFactor,
     donkOption: Number(config.donkOption),
     oopFlopBet: config.oopFlopBet,
     oopFlopRaise: config.oopFlopRaise,
@@ -1017,6 +1133,9 @@ const loadConfig = (value: unknown) => {
   config.effectiveStack = Number(configValue.effectiveStack);
   config.rakePercent = Number(configValue.rakePercent);
   config.rakeCap = Number(configValue.rakeCap);
+  config.bubbleFactorOption = Boolean(configValue.bubbleFactorOption);
+  config.oopBubbleFactor = Number(configValue.oopBubbleFactor);
+  config.ipBubbleFactor = Number(configValue.ipBubbleFactor);
   config.donkOption = Boolean(configValue.donkOption);
   config.addAllInThreshold = Number(configValue.addAllInThreshold);
   config.forceAllInThreshold = Number(configValue.forceAllInThreshold);
@@ -1080,6 +1199,7 @@ const cancelEdit = () => {
   }
   store.headers["tree-config"].pop();
 };
+
 </script>
 
 <style scoped>

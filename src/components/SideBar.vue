@@ -50,6 +50,13 @@
       Run Solver
     </button>
 
+    <button
+      :class="itemStyle('load-result')"
+      @click="store.sideView = 'load-result'"
+    >
+      Save/Load Result
+    </button>
+
     <button :class="itemStyle('about')" @click="store.sideView = 'about'">
       About
     </button>
@@ -83,7 +90,7 @@ const boardTexts = computed(() => {
 
 <style scoped>
 .side-bar-item {
-  @apply block mx-2 my-[0.1875rem] px-4 py-2.5 rounded-3xl;
+  @apply block mx-2 my-[0.17rem] px-4 py-[0.59rem] rounded-3xl;
   @apply text-left text-[1.0625rem] select-none;
   @apply transition-colors hover:bg-blue-100;
 }
