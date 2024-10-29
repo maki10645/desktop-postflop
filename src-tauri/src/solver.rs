@@ -74,6 +74,8 @@ pub fn game_init(
     effective_stack: i32,
     rake_rate: f64,
     rake_cap: f64,
+    oop_bubble_factor: f64,
+    ip_bubble_factor: f64,
     donk_option: bool,
     oop_flop_bet: String,
     oop_flop_raise: String,
@@ -95,6 +97,19 @@ pub fn game_init(
     added_lines: String,
     removed_lines: String,
 ) -> Option<String> {
+    
+    if cfg!(debug_assertions) {
+    //dbg
+      println!("game_init: board {:?}", board);
+      println!("game_init: added_lines {:?}", added_lines);
+      println!("game_init: removed_lines {:?}", removed_lines);
+      println!("game_init: oop_bubble_factor: {:?}", oop_bubble_factor);
+      println!("game_init: ip_bubble_factor: {:?}", ip_bubble_factor);
+    }
+
+    //let bubble_factor :[f64;2] = [oop_bubble_factor, ip_bubble_factor];
+    //println!("game_init: bubble_factor:[f64;2]: {:?}", bubble_factor);
+
     let (turn, river, state) = match board.len() {
         3 => (NOT_DEALT, NOT_DEALT, BoardState::Flop),
         4 => (board[3], NOT_DEALT, BoardState::Turn),
@@ -116,6 +131,7 @@ pub fn game_init(
         effective_stack,
         rake_rate,
         rake_cap,
+        bubble_factor: [oop_bubble_factor, ip_bubble_factor],
         flop_bet_sizes: [
             BetSizeOptions::try_from((oop_flop_bet.as_str(), oop_flop_raise.as_str())).unwrap(),
             BetSizeOptions::try_from((ip_flop_bet.as_str(), ip_flop_raise.as_str())).unwrap(),
@@ -140,6 +156,9 @@ pub fn game_init(
         force_allin_threshold,
         merging_threshold,
     };
+
+    //dbg
+    if cfg!(debug_assertions) { println!("tree_config {:?}", tree_config); }
 
     let mut action_tree = ActionTree::new(tree_config).unwrap();
 

@@ -5,10 +5,12 @@
 
 mod bunching;
 mod range;
+mod saveload;
 mod solver;
 mod tree;
 use crate::bunching::*;
 use crate::range::*;
+use crate::saveload::*;
 use crate::solver::*;
 use crate::tree::*;
 
@@ -19,6 +21,10 @@ use sysinfo::{System, SystemExt};
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(Mutex::new(RangeManager::default()))
         .manage(Mutex::new(default_action_tree()))
         .manage(Mutex::new(None as Option<BunchingData>))
@@ -68,7 +74,16 @@ fn main() {
             game_actions_after,
             game_possible_cards,
             game_get_results,
-            game_get_chance_reports
+            game_get_chance_reports,
+            save_post_solver_result,
+            save_post_solver_result2,
+            load_post_solver_result,
+            load_card_config,
+            load_frontend_config,
+            save_uint8array_to_desig_path,
+            delete_desig_path,
+            test_test,
+            test_test2,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

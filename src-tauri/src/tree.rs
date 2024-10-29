@@ -121,6 +121,7 @@ pub fn tree_new(
         effective_stack,
         rake_rate: 0.0,
         rake_cap: 0.0,
+        bubble_factor: [1.0, 1.0],
         flop_bet_sizes: [
             BetSizeOptions::try_from((oop_flop_bet.as_str(), oop_flop_raise.as_str())).unwrap(),
             BetSizeOptions::try_from((ip_flop_bet.as_str(), ip_flop_raise.as_str())).unwrap(),
@@ -274,7 +275,8 @@ pub fn tree_add_bet_action(
         false => Action::Bet(amount),
         true => Action::Raise(amount),
     };
-    tree.add_action(action).unwrap();
+    //tree.add_action(action).unwrap();
+    tree.add_action(action).unwrap_or_default();
 }
 
 #[tauri::command]
