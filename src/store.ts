@@ -10,6 +10,7 @@ export type SideView =
   | "tree-config"
   | "bunching"
   | "run-solver"
+  | "load-result"
   | "about";
 
 export const saveConfigTmp = () => {
@@ -22,6 +23,9 @@ export const saveConfigTmp = () => {
     effectiveStack: config.effectiveStack,
     rakePercent: config.rakePercent,
     rakeCap: config.rakeCap,
+    bubbleFactorOption: config.bubbleFactorOption,
+    oopBubbleFactor: config.oopBubbleFactor,
+    ipBubbleFactor: config.ipBubbleFactor,
     donkOption: config.donkOption,
     oopFlopBet: config.oopFlopBet,
     oopFlopRaise: config.oopFlopRaise,
@@ -56,6 +60,9 @@ export const saveConfig = () => {
     effectiveStack: tmpConfig.effectiveStack,
     rakePercent: tmpConfig.rakePercent,
     rakeCap: tmpConfig.rakeCap,
+    bubbleFactorOption: tmpConfig.bubbleFactorOption,
+    oopBubbleFactor: tmpConfig.oopBubbleFactor,
+    ipBubbleFactor: tmpConfig.ipBubbleFactor,
     donkOption: tmpConfig.donkOption,
     oopFlopBet: tmpConfig.oopFlopBet,
     oopFlopRaise: tmpConfig.oopFlopRaise,
@@ -92,10 +99,13 @@ export const useStore = defineStore("app", {
       "tree-config": ["Tree Configuration"],
       bunching: ["Bunching Effect"],
       "run-solver": ["Run Solver"],
+      "load-result": ["Save/Load Result"],
     },
     ranges: Array.from({ length: 6 }, () =>
       Array.from({ length: 13 * 13 }, () => 0)
     ),
+    rangeText: Array.from({ length: 6 }, () => "" ), // [0]oop [1]ip [2-5]bunching-foldranges
+    rangeCombos: Array.from({ length: 6 }, () => 0 ), // [0]oop [1]ip [2-5]bunching-foldranges
     isBunchingEnabled: false,
     isBunchingRunning: false,
     bunchingFlop: [] as number[],
@@ -126,6 +136,9 @@ export const useConfigStore = defineStore("config", {
     effectiveStack: 100,
     rakePercent: 0,
     rakeCap: 0,
+    bubbleFactorOption: false,
+    oopBubbleFactor: 1.0,
+    ipBubbleFactor: 1.0,
     donkOption: false,
     oopFlopBet: "",
     oopFlopRaise: "",
@@ -174,6 +187,9 @@ export const useTmpConfigStore = defineStore("tmpConfig", {
     effectiveStack: 0,
     rakePercent: 0,
     rakeCap: 0,
+    bubbleFactorOption: false,
+    oopBubbleFactor: 1.0,
+    ipBubbleFactor: 1.0,
     donkOption: false,
     oopFlopBet: "",
     oopFlopRaise: "",
@@ -205,6 +221,9 @@ export const useSavedConfigStore = defineStore("savedConfig", {
     effectiveStack: 0,
     rakePercent: 0,
     rakeCap: 0,
+    bubbleFactorOption: false,
+    oopBubbleFactor: 1.0,
+    ipBubbleFactor: 1.0,
     donkOption: false,
     oopFlopBet: "",
     oopFlopRaise: "",

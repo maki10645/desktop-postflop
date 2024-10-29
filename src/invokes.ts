@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { Results, ChanceReports } from "./result-types";
 
 export const osName = async (): Promise<"windows" | "macos" | "linux"> => {
@@ -187,6 +187,8 @@ export const gameInit = async (
   effectiveStack: number,
   rakeRate: number,
   rakeCap: number,
+  oopBubbleFactor: number,
+  ipBubbleFactor: number,
   donkOption: boolean,
   oopFlopBet: string,
   oopFlopRaise: string,
@@ -214,6 +216,8 @@ export const gameInit = async (
     effectiveStack,
     rakeRate,
     rakeCap,
+    oopBubbleFactor,
+    ipBubbleFactor,
     donkOption,
     oopFlopBet,
     oopFlopRaise,
@@ -347,4 +351,108 @@ export const gameGetChanceReports = async (
     eqr: reports.eqr,
     strategy: reports.strategy,
   };
+};
+
+export const savePostSolveResult = async (path: string, frontendconfig: string): Promise<boolean> => {
+    const success: boolean = await invoke("save_post_solver_result", {
+        path: path,
+        frontendconfig: frontendconfig,
+    });
+    return success;
+};
+
+export const savePostSolveResult2 = async (path: string, frontcfgpath: string): Promise<boolean> => {
+  const success: boolean = await invoke("save_post_solver_result2", {
+      path,
+      frontcfgpath,
+  });
+  return success;
+};
+
+export const DeleteDesigPath = async (path: string): Promise<boolean> => {
+  const success: boolean = await invoke("delete_desig_path", {
+      path,
+  });
+  return success;
+};
+
+export const loadPostSolveResult = async (path: string): Promise<loadPostSolveResultReturn> => {
+  const ret: loadPostSolveResultReturn = await invoke("load_post_solver_result", {path: path });
+  return ret;
+};
+type loadPostSolveResultReturn = {
+    status: boolean;
+    config_str: string;
+};
+
+type CardConfig = {
+    range: number[][];
+    flop: number[];
+    turn: number;
+    river: number;
+    starting_pot: number;
+    effective_stack: number;
+};
+
+export const loadCardConfig = async(): Promise<CardConfig> => {
+    const back_end_card_config: CardConfig = await invoke("load_card_config");
+
+    return back_end_card_config;
+};
+
+//save & restore frontend configuration
+type RestoreFrontendConfig = {
+  startingPot:number,
+  effectiveStack:number,
+  rakePercent: number,
+  rakeCap: number,
+  donkOption: boolean,
+  oopFlopBet: string,
+  oopFlopRaise: string,
+  oopTurnBet: string,
+  oopTurnRaise: string,
+  oopTurnDonk: string,
+  oopRiverBet: string,
+  oopRiverRaise: string,
+  oopRiverDonk: string,
+  ipFlopBet: string,
+  ipFlopRaise: string,
+  ipTurnBet: string,
+  ipTurnRaise: string,
+  ipRiverBet: string,
+  ipRiverRaise: string,
+  addAllInThreshold: number,
+  forceAllInThreshold: number,
+  mergingThreshold: number,
+  expectedBoardLength:number,
+  addedLines: string,
+  removedLines: string,
+};
+export const restoreFrontendConfig = async(): Promise<RestoreFrontendConfig> => {
+  const ret: RestoreFrontendConfig = await invoke("load_frontend_config");
+  return ret;
+};
+
+export const saveUint8ArrayToDesigPath = async (path: string, chunk: Uint8Array): Promise<boolean> => {
+  const success: boolean = await invoke("save_uint8array_to_desig_path", {
+      path,
+      chunk,
+  });
+  return success;
+};
+
+export const testtest = async (test1: string, test2: string): Promise<boolean> => {
+  const success: boolean = await invoke("test_test", {
+      test1,
+      test2,
+  });
+  return success;
+};
+
+export const testtest2 = async (test1: string, test2: Uint8Array): Promise<boolean> => {
+  const success: boolean = await invoke("test_test2", {
+      test1,
+      test2,
+  });
+  return success;
 };
