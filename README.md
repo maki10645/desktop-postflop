@@ -55,6 +55,17 @@ You can download the app from the [GitHub releases page].
 
 [GitHub releases page]: https://github.com/b-inary/desktop-postflop/releases
 
+### Development Builds
+
+For the latest development builds (without waiting for official releases), you can:
+
+1. **Download artifacts from GitHub Actions**: Go to the [Actions tab](https://github.com/b-inary/desktop-postflop/actions) and download the latest successful build artifacts.
+2. **Trigger a manual build**: If you have write access to the repository, you can go to the Actions tab and manually trigger the "Build App" workflow.
+
+Development builds are automatically created for every push to the main branch and include the latest features and bug fixes.
+
+### Official Releases
+
 - Windows
   - The installer version (.msi) automatically installs dependent runtimes.
   - The portable version (.exe) requires the [WebView2 runtime] to be installed.

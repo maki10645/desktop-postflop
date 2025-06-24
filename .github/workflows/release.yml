@@ -2,7 +2,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -15,12 +15,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: "npm"
 
       - name: Setup Rust nightly
         uses: dtolnay/rust-toolchain@nightly
@@ -48,7 +49,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         uses: softprops/action-gh-release@v1
         with:
-          draft: true
+          draft: false
           files: |
             src-tauri/target/x86_64-pc-windows-msvc/release/Desktop Postflop.exe
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/Desktop Postflop_*_x64_en-US.msi
