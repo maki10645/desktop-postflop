@@ -382,6 +382,16 @@ export const DeleteDesigPath = async (path: string): Promise<boolean> => {
 	return success;
 };
 
+export const exportWeights = async (
+	player: number,
+	filePath: string,
+): Promise<void> => {
+	await invoke("export_weights", {
+		player,
+		filePath,
+	});
+};
+
 export const loadPostSolveResult = async (
 	path: string,
 ): Promise<loadPostSolveResultReturn> => {

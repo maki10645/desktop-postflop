@@ -21,6 +21,7 @@ use sysinfo::{System, SystemExt};
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
@@ -75,6 +76,7 @@ fn main() {
             game_possible_cards,
             game_get_results,
             game_get_chance_reports,
+            export_weights,
             save_post_solver_result,
             save_post_solver_result2,
             load_post_solver_result,

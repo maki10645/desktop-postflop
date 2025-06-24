@@ -1,9 +1,8 @@
 use postflop_solver::*;
 use serde::Serialize;
-use std::sync::Mutex;
 use std::fs::{read_to_string, remove_file, OpenOptions};
-use std::io::{ BufWriter, Write};
-
+use std::io::{BufWriter, Write};
+use std::sync::Mutex;
 
 #[derive(Serialize)]
 pub struct FrontEndLoadConfig {
@@ -64,7 +63,9 @@ pub fn save_post_solver_result(
         return false;
     }
 
-    if cfg!(debug_assertions) { println!("saved_frontendconfig: {:?}", frontendconfig); }
+    if cfg!(debug_assertions) {
+        println!("saved_frontendconfig: {:?}", frontendconfig);
+    }
 
     match save_data_to_file(game, &frontendconfig, path, Some(4)) {
         Ok(ok) => {
@@ -73,12 +74,13 @@ pub fn save_post_solver_result(
         }
         Err(err) => {
             _ = err;
-            if cfg!(debug_assertions) { println!("save error!! {:?}", err); }
+            if cfg!(debug_assertions) {
+                println!("save error!! {:?}", err);
+            }
             return false;
         }
     }
 }
-
 
 #[tauri::command]
 pub fn save_post_solver_result2(
@@ -86,16 +88,19 @@ pub fn save_post_solver_result2(
     path: String,
     frontcfgpath: String,
 ) -> bool {
-
     if path.is_empty() {
         return false;
     }
 
     let str = read_to_string(&frontcfgpath);
-    if cfg!(debug_assertions) { println!("save_post_solver_result2 ... {:?}  ",str); }
-    match str{
-        Ok(str) => { 
-            if cfg!(debug_assertions) { println!("saved_frontendconfig2: {:?}", str); }
+    if cfg!(debug_assertions) {
+        println!("save_post_solver_result2 ... {:?}  ", str);
+    }
+    match str {
+        Ok(str) => {
+            if cfg!(debug_assertions) {
+                println!("saved_frontendconfig2: {:?}", str);
+            }
             let frontendconfig = str;
             let game = &*game_state.lock().unwrap();
             match save_data_to_file(game, &frontendconfig, path, Some(4)) {
@@ -105,17 +110,20 @@ pub fn save_post_solver_result2(
                 }
                 Err(err) => {
                     _ = err;
-                    if cfg!(debug_assertions) { println!("save error!! {:?}", err); }
+                    if cfg!(debug_assertions) {
+                        println!("save error!! {:?}", err);
+                    }
                     return false;
                 }
             }
         }
-        Err(err) => {_ = err; dbg!("read_to_string") ;return false}
+        Err(err) => {
+            _ = err;
+            dbg!("read_to_string");
+            return false;
+        }
     }
-
-
 }
-
 
 #[tauri::command]
 pub fn load_post_solver_result(
@@ -141,7 +149,9 @@ pub fn load_post_solver_result(
             //let game = psr;
             //let game = load_data_from_file(path, None).unwrap();
             let frontendconfig: String = game.1;
-            if cfg!(debug_assertions) { println!("loaded_frontendconfig: {:?}", frontendconfig); }
+            if cfg!(debug_assertions) {
+                println!("loaded_frontendconfig: {:?}", frontendconfig);
+            }
             let _ = std::mem::replace(old_game, game.0);
 
             ret.status = true;
@@ -153,7 +163,9 @@ pub fn load_post_solver_result(
             ret.status = false;
             ret.config_str = err.to_string();
 
-            if cfg!(debug_assertions) { println!("{:?}", ret.config_str); }
+            if cfg!(debug_assertions) {
+                println!("{:?}", ret.config_str);
+            }
             return ret;
         }
     }
@@ -338,8 +350,7 @@ pub fn load_frontend_config(game_state: tauri::State<Mutex<PostFlopGame>>) -> Fr
 }
 
 #[tauri::command]
-pub fn save_uint8array_to_desig_path(path:String, chunk:Vec<u8> ) -> bool {
-
+pub fn save_uint8array_to_desig_path(path: String, chunk: Vec<u8>) -> bool {
     if cfg!(debug_assertions) {
         println!("save_uint8array_to_desig_path");
         println!("{:?} {:?}", path, chunk);
@@ -351,52 +362,66 @@ pub fn save_uint8array_to_desig_path(path:String, chunk:Vec<u8> ) -> bool {
         .create(true)
         .open(path);
 
-    match file{
-        Ok(f) =>{
+    match file {
+        Ok(f) => {
             let mut bw = BufWriter::new(f);
-            match bw.write(&chunk){
-                Ok(ok) => { _=ok; bw.flush().unwrap(); return true;},
-                Err(err) => { _=err ; return false; },
+            match bw.write(&chunk) {
+                Ok(ok) => {
+                    _ = ok;
+                    bw.flush().unwrap();
+                    return true;
+                }
+                Err(err) => {
+                    _ = err;
+                    return false;
+                }
             }
-
-        },
-        Err(err) =>{
-            _=err;
+        }
+        Err(err) => {
+            _ = err;
             return false;
         }
     }
-
 }
 
-
 #[tauri::command]
-pub fn delete_desig_path(path:String) -> bool {
-
+pub fn delete_desig_path(path: String) -> bool {
     if cfg!(debug_assertions) {
         println!("save_udelete_desig_pathint8array_to_desig_path");
         println!("{:?}", path);
     }
 
-    match remove_file(path){
-        Ok(ok) => { _=ok; return true; },
-        Err(err) => { _=err; return false; }
+    match remove_file(path) {
+        Ok(ok) => {
+            _ = ok;
+            return true;
+        }
+        Err(err) => {
+            _ = err;
+            return false;
+        }
     }
 }
 
-
 #[tauri::command]
-pub fn test_test(test1:String, test2:String ) -> bool {
-    if cfg!(debug_assertions) { println!("test1 {:?}, test2 {:?}"  ,test1, test2); }
+pub fn test_test(test1: String, test2: String) -> bool {
+    if cfg!(debug_assertions) {
+        println!("test1 {:?}, test2 {:?}", test1, test2);
+    }
 
     let str = read_to_string(&test1).unwrap();
-    if cfg!(debug_assertions) { println!("test1 contents {:?} " , str); }
+    if cfg!(debug_assertions) {
+        println!("test1 contents {:?} ", str);
+    }
 
     return true;
 }
 
 #[tauri::command]
-pub fn test_test2(test1:String, test2:Vec<u8> ) -> bool {
-    if cfg!(debug_assertions) { println!("test1 {:?}, test2 {:?}"  ,test1, test2); }
+pub fn test_test2(test1: String, test2: Vec<u8>) -> bool {
+    if cfg!(debug_assertions) {
+        println!("test1 {:?}, test2 {:?}", test1, test2);
+    }
 
     let file = OpenOptions::new()
         .write(true)
@@ -404,22 +429,38 @@ pub fn test_test2(test1:String, test2:Vec<u8> ) -> bool {
         .create(true)
         .open(test1);
 
-        if cfg!(debug_assertions) { println!("a"); }
-    match file{
-        Ok(f) =>{
+    if cfg!(debug_assertions) {
+        println!("a");
+    }
+    match file {
+        Ok(f) => {
             let mut bw = BufWriter::new(f);
-            match bw.write(&test2){
-                Ok(ok) =>   { if cfg!(debug_assertions) {println!("b")}; _=ok; bw.flush().unwrap(); return true;},
-                Err(err) => { if cfg!(debug_assertions) {println!("c")}; _=err; return false; },
+            match bw.write(&test2) {
+                Ok(ok) => {
+                    if cfg!(debug_assertions) {
+                        println!("b")
+                    };
+                    _ = ok;
+                    bw.flush().unwrap();
+                    return true;
+                }
+                Err(err) => {
+                    if cfg!(debug_assertions) {
+                        println!("c")
+                    };
+                    _ = err;
+                    return false;
+                }
             }
-
-        },
-        Err(err) =>{
-            _=err;
-            if cfg!(debug_assertions) { println!("d, {:?}", err.to_string()); }
+        }
+        Err(err) => {
+            _ = err;
+            if cfg!(debug_assertions) {
+                println!("d, {:?}", err.to_string());
+            }
             return false;
         }
-    } 
+    }
     //return false;
 }
 
@@ -454,4 +495,3 @@ fn betsize_tostring(b: BetSize) -> String {
 
     ret
 }
-
