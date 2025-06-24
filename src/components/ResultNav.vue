@@ -240,97 +240,97 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, toRefs, ref, watch } from "vue";
-import { useSavedConfigStore } from "../store";
-import { cardText, average, colorString } from "../utils";
+import { computed, nextTick, ref, toRefs, watch } from "vue";
 import * as invokes from "../invokes";
+import { useSavedConfigStore } from "../store";
+import { average, cardText, colorString } from "../utils";
 
-import {
-  Results,
-  ChanceReports,
-  Spot,
-  SpotRoot,
-  SpotChance,
-  SpotPlayer,
+import type {
+	ChanceReports,
+	Results,
+	Spot,
+	SpotChance,
+	SpotPlayer,
+	SpotRoot,
 } from "../result-types";
 
 import {
-  CheckIcon,
-  XMarkIcon,
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronUpIcon,
+	CheckIcon,
+	ChevronDownIcon,
+	ChevronLeftIcon,
+	ChevronRightIcon,
+	ChevronUpIcon,
+	XMarkIcon,
 } from "@heroicons/vue/20/solid";
 
 const foldColor = { red: 0x3b, green: 0x82, blue: 0xf6 }; // blue-500
 const checkColor = { red: 0x22, green: 0xc5, blue: 0x5e }; // green-500
 const callColor = { red: 0x22, green: 0xc5, blue: 0x5e }; // green-500
 const betColorGradient = [
-  { red: 0xf5, green: 0x9e, blue: 0x0b }, // amber-500
-  { red: 0xf9, green: 0x73, blue: 0x16 }, // orange-500
-  { red: 0xef, green: 0x44, blue: 0x44 }, // red-500
-  { red: 0xec, green: 0x48, blue: 0x99 }, // pink-500
-  { red: 0xd9, green: 0x46, blue: 0xef }, // fuchsia-500
-  { red: 0xa8, green: 0x55, blue: 0xf7 }, // purple-500
-  { red: 0x8b, green: 0x5c, blue: 0xf6 }, // violet-500
+	{ red: 0xf5, green: 0x9e, blue: 0x0b }, // amber-500
+	{ red: 0xf9, green: 0x73, blue: 0x16 }, // orange-500
+	{ red: 0xef, green: 0x44, blue: 0x44 }, // red-500
+	{ red: 0xec, green: 0x48, blue: 0x99 }, // pink-500
+	{ red: 0xd9, green: 0x46, blue: 0xef }, // fuchsia-500
+	{ red: 0xa8, green: 0x55, blue: 0xf7 }, // purple-500
+	{ red: 0x8b, green: 0x5c, blue: 0xf6 }, // violet-500
 ];
 
 const actionColor = (
-  name: string,
-  index: number,
-  numActions: number,
-  numBetActions: number
+	name: string,
+	index: number,
+	numActions: number,
+	numBetActions: number,
 ) => {
-  if (name === "Fold") return colorString(foldColor);
-  if (name === "Check") return colorString(checkColor);
-  if (name === "Call") return colorString(callColor);
+	if (name === "Fold") return colorString(foldColor);
+	if (name === "Check") return colorString(checkColor);
+	if (name === "Call") return colorString(callColor);
 
-  if (numBetActions === 1) return colorString(betColorGradient[0]);
-  if (index === numActions - 1) {
-    const denom = numBetActions === 2 ? 2 : 1;
-    return colorString(betColorGradient[(betColorGradient.length - 1) / denom]);
-  }
+	if (numBetActions === 1) return colorString(betColorGradient[0]);
+	if (index === numActions - 1) {
+		const denom = numBetActions === 2 ? 2 : 1;
+		return colorString(betColorGradient[(betColorGradient.length - 1) / denom]);
+	}
 
-  const betIndex = index - (numActions - numBetActions);
-  const colorRate = betIndex / (numBetActions - 1);
+	const betIndex = index - (numActions - numBetActions);
+	const colorRate = betIndex / (numBetActions - 1);
 
-  const gradientRate = colorRate * (betColorGradient.length - 1);
-  const gradientIndex = Math.floor(gradientRate);
-  const r = gradientRate - gradientIndex;
+	const gradientRate = colorRate * (betColorGradient.length - 1);
+	const gradientIndex = Math.floor(gradientRate);
+	const r = gradientRate - gradientIndex;
 
-  const color1 = betColorGradient[gradientIndex];
-  const color2 = betColorGradient[gradientIndex + 1];
+	const color1 = betColorGradient[gradientIndex];
+	const color2 = betColorGradient[gradientIndex + 1];
 
-  const retColor = { red: 0, green: 0, blue: 0 };
-  for (const primary of ["red", "green", "blue"] as const) {
-    const primary1 = color1[primary];
-    const primary2 = color2[primary];
-    retColor[primary] = Math.round(primary1 * (1 - r) + primary2 * r);
-  }
+	const retColor = { red: 0, green: 0, blue: 0 };
+	for (const primary of ["red", "green", "blue"] as const) {
+		const primary1 = color1[primary];
+		const primary2 = color2[primary];
+		retColor[primary] = Math.round(primary1 * (1 - r) + primary2 * r);
+	}
 
-  return colorString(retColor);
+	return colorString(retColor);
 };
 
 const props = defineProps<{
-  isHandlerUpdated: boolean;
-  isLocked: boolean;
-  cards: number[][];
-  dealtCard: number;
+	isHandlerUpdated: boolean;
+	isLocked: boolean;
+	cards: number[][];
+	dealtCard: number;
 }>();
 
 const emit = defineEmits<{
-  (event: "update:is-handler-updated", value: boolean): void;
-  (event: "update:is-locked", value: boolean): void;
-  (
-    event: "trigger-update",
-    selectedSpot: Spot | null,
-    selectedChance: SpotChance | null,
-    currentBoard: number[],
-    results: Results,
-    chanceReports: ChanceReports | null,
-    totalBetAmount: number[]
-  ): void;
+	(event: "update:is-handler-updated", value: boolean): void;
+	(event: "update:is-locked", value: boolean): void;
+	(
+		event: "trigger-update",
+		selectedSpot: Spot | null,
+		selectedChance: SpotChance | null,
+		currentBoard: number[],
+		results: Results,
+		chanceReports: ChanceReports | null,
+		totalBetAmount: number[],
+	): void;
 }>();
 
 const navDiv = ref<HTMLDivElement | null>(null);
@@ -346,36 +346,36 @@ const isDealing = ref(false);
 const canChanceReports = ref(false);
 
 const selectedSpot = computed(() =>
-  selectedSpotIndex.value === -1 ||
-  selectedSpotIndex.value >= spots.value.length
-    ? null
-    : spots.value[selectedSpotIndex.value]
+	selectedSpotIndex.value === -1 ||
+	selectedSpotIndex.value >= spots.value.length
+		? null
+		: spots.value[selectedSpotIndex.value],
 );
 
 const selectedChance = computed(() =>
-  selectedChanceIndex.value === -1
-    ? null
-    : (spots.value[selectedChanceIndex.value] as SpotChance)
+	selectedChanceIndex.value === -1
+		? null
+		: (spots.value[selectedChanceIndex.value] as SpotChance),
 );
 
 const isSelectedChanceSkipped = computed(() => {
-  return selectedChance.value?.selectedIndex === -1;
+	return selectedChance.value?.selectedIndex === -1;
 });
 
 const currentBoard = computed(() => {
-  const board = [...config.board];
-  const endIndex = selectedChance.value
-    ? selectedChanceIndex.value
-    : selectedSpotIndex.value;
-  for (let i = 3; i < endIndex; ++i) {
-    const spot = spots.value[i];
-    if (spot.type === "chance") {
-      const card = spot.selectedIndex;
-      if (card !== -1) board.push(card);
-      else return board;
-    }
-  }
-  return board;
+	const board = [...config.board];
+	const endIndex = selectedChance.value
+		? selectedChanceIndex.value
+		: selectedSpotIndex.value;
+	for (let i = 3; i < endIndex; ++i) {
+		const spot = spots.value[i];
+		if (spot.type === "chance") {
+			const card = spot.selectedIndex;
+			if (card !== -1) board.push(card);
+			else return board;
+		}
+	}
+	return board;
 });
 
 let selectedSpotIndexTmp = -1;
@@ -387,479 +387,479 @@ let totalBetAmount = [0, 0];
 let totalBetAmountAppended = [0, 0];
 
 watch(isHandlerUpdated, async () => {
-  if (!isHandlerUpdated.value) return;
+	if (!isHandlerUpdated.value) return;
 
-  const l = config.board.length;
-  const spot: SpotRoot = {
-    type: "root",
-    index: 0,
-    player: l === 3 ? "flop" : l === 4 ? "turn" : "river",
-    selectedIndex: -1,
-    board: config.board,
-    pot: config.startingPot,
-    stack: config.effectiveStack,
-  };
-  spots.value = [spot];
+	const l = config.board.length;
+	const spot: SpotRoot = {
+		type: "root",
+		index: 0,
+		player: l === 3 ? "flop" : l === 4 ? "turn" : "river",
+		selectedIndex: -1,
+		board: config.board,
+		pot: config.startingPot,
+		stack: config.effectiveStack,
+	};
+	spots.value = [spot];
 
-  await selectSpot(1, true);
-  emit("update:is-handler-updated", false);
+	await selectSpot(1, true);
+	emit("update:is-handler-updated", false);
 });
 
 const selectSpot = async (
-  spotIndex: number,
-  needSplice: boolean,
-  fromDeal = false
+	spotIndex: number,
+	needSplice: boolean,
+	fromDeal = false,
 ) => {
-  if (
-    props.isLocked ||
-    (!needSplice &&
-      ((spotIndex === selectedSpotIndex.value && !fromDeal) ||
-        spotIndex === selectedChanceIndex.value ||
-        (spots.value[spotIndex].type === "chance" &&
-          isSelectedChanceSkipped.value &&
-          spotIndex > selectedChanceIndex.value)))
-  ) {
-    return;
-  }
+	if (
+		props.isLocked ||
+		(!needSplice &&
+			((spotIndex === selectedSpotIndex.value && !fromDeal) ||
+				spotIndex === selectedChanceIndex.value ||
+				(spots.value[spotIndex].type === "chance" &&
+					isSelectedChanceSkipped.value &&
+					spotIndex > selectedChanceIndex.value)))
+	) {
+		return;
+	}
 
-  if (spotIndex === 0) {
-    await selectSpot(1, true);
-    return;
-  }
+	if (spotIndex === 0) {
+		await selectSpot(1, true);
+		return;
+	}
 
-  // start processing
-  emit("update:is-locked", true);
+	// start processing
+	emit("update:is-locked", true);
 
-  // avoid unnecessary update of refs
-  selectedSpotIndexTmp = selectedSpotIndex.value;
-  selectedChanceIndexTmp = selectedChanceIndex.value;
+	// avoid unnecessary update of refs
+	selectedSpotIndexTmp = selectedSpotIndex.value;
+	selectedChanceIndexTmp = selectedChanceIndex.value;
 
-  // when from deal, update river dead cards and terminal equity
-  if (fromDeal) {
-    const findRiverIndex = spots.value
-      .slice(selectedChanceIndexTmp + 3)
-      .findIndex((spot) => spot.type === "chance");
-    let riverIndex = -1;
-    if (findRiverIndex !== -1) {
-      riverIndex = findRiverIndex + selectedChanceIndexTmp + 3;
-    }
-    const riverSpot =
-      riverIndex === -1 ? null : (spots.value[riverIndex] as SpotChance);
-    selectedChanceIndexTmp = -1;
+	// when from deal, update river dead cards and terminal equity
+	if (fromDeal) {
+		const findRiverIndex = spots.value
+			.slice(selectedChanceIndexTmp + 3)
+			.findIndex((spot) => spot.type === "chance");
+		let riverIndex = -1;
+		if (findRiverIndex !== -1) {
+			riverIndex = findRiverIndex + selectedChanceIndexTmp + 3;
+		}
+		const riverSpot =
+			riverIndex === -1 ? null : (spots.value[riverIndex] as SpotChance);
+		selectedChanceIndexTmp = -1;
 
-    if (riverSpot) {
-      const history = spots.value
-        .slice(1, riverIndex)
-        .map((spot) => spot.selectedIndex);
-      await invokes.gameApplyHistory(history);
-      const possibleCards = await invokes.gamePossibleCards();
-      for (let i = 0; i < 52; ++i) {
-        const isDead = !(possibleCards & (1n << BigInt(i)));
-        riverSpot.cards[i].isDead = isDead;
-        if (riverSpot.selectedIndex === i && isDead) {
-          riverSpot.cards[i].isSelected = false;
-          riverSpot.selectedIndex = -1;
-        }
-      }
-    }
+		if (riverSpot) {
+			const history = spots.value
+				.slice(1, riverIndex)
+				.map((spot) => spot.selectedIndex);
+			await invokes.gameApplyHistory(history);
+			const possibleCards = await invokes.gamePossibleCards();
+			for (let i = 0; i < 52; ++i) {
+				const isDead = !(possibleCards & (1n << BigInt(i)));
+				riverSpot.cards[i].isDead = isDead;
+				if (riverSpot.selectedIndex === i && isDead) {
+					riverSpot.cards[i].isSelected = false;
+					riverSpot.selectedIndex = -1;
+				}
+			}
+		}
 
-    const riverSkipped = riverSpot?.selectedIndex === -1;
-    const lastSpot = spots.value[spots.value.length - 1];
+		const riverSkipped = riverSpot?.selectedIndex === -1;
+		const lastSpot = spots.value[spots.value.length - 1];
 
-    if (
-      !riverSkipped &&
-      lastSpot.type === "terminal" &&
-      lastSpot.equityOop !== 0 &&
-      lastSpot.equityOop !== 1
-    ) {
-      const history = spots.value
-        .slice(1, -1)
-        .map((spot) => spot.selectedIndex);
-      await invokes.gameApplyHistory(history);
-      const results = await invokes.gameGetResults();
-      if (!results.isEmpty) {
-        lastSpot.equityOop = average(results.equity[0], results.normalizer[0]);
-      } else {
-        lastSpot.equityOop = -1;
-      }
-    }
-  }
+		if (
+			!riverSkipped &&
+			lastSpot.type === "terminal" &&
+			lastSpot.equityOop !== 0 &&
+			lastSpot.equityOop !== 1
+		) {
+			const history = spots.value
+				.slice(1, -1)
+				.map((spot) => spot.selectedIndex);
+			await invokes.gameApplyHistory(history);
+			const results = await invokes.gameGetResults();
+			if (!results.isEmpty) {
+				lastSpot.equityOop = average(results.equity[0], results.normalizer[0]);
+			} else {
+				lastSpot.equityOop = -1;
+			}
+		}
+	}
 
-  // update indices of selected spot and selected chance
-  if (!needSplice && spots.value[spotIndex].type === "chance") {
-    selectedChanceIndexTmp = spotIndex;
-    if (selectedSpotIndexTmp < spotIndex + 1) {
-      selectedSpotIndexTmp = spotIndex + 1;
-    }
-  } else {
-    selectedSpotIndexTmp = spotIndex;
-    if (spotIndex <= selectedChanceIndexTmp) {
-      selectedChanceIndexTmp = -1;
-    } else if (selectedChanceIndexTmp === -1) {
-      selectedChanceIndexTmp = spots.value
-        .slice(0, spotIndex)
-        .findIndex(
-          (spot) => spot.type === "chance" && spot.selectedIndex === -1
-        );
-    }
-  }
+	// update indices of selected spot and selected chance
+	if (!needSplice && spots.value[spotIndex].type === "chance") {
+		selectedChanceIndexTmp = spotIndex;
+		if (selectedSpotIndexTmp < spotIndex + 1) {
+			selectedSpotIndexTmp = spotIndex + 1;
+		}
+	} else {
+		selectedSpotIndexTmp = spotIndex;
+		if (spotIndex <= selectedChanceIndexTmp) {
+			selectedChanceIndexTmp = -1;
+		} else if (selectedChanceIndexTmp === -1) {
+			selectedChanceIndexTmp = spots.value
+				.slice(0, spotIndex)
+				.findIndex(
+					(spot) => spot.type === "chance" && spot.selectedIndex === -1,
+				);
+		}
+	}
 
-  let endIndex: number;
-  if (selectedChanceIndexTmp === -1) {
-    endIndex = selectedSpotIndexTmp;
-  } else {
-    endIndex = selectedChanceIndexTmp;
-  }
+	let endIndex: number;
+	if (selectedChanceIndexTmp === -1) {
+		endIndex = selectedSpotIndexTmp;
+	} else {
+		endIndex = selectedChanceIndexTmp;
+	}
 
-  const history = spots.value
-    .slice(1, endIndex)
-    .map((spot) => spot.selectedIndex);
+	const history = spots.value
+		.slice(1, endIndex)
+		.map((spot) => spot.selectedIndex);
 
-  // apply history
-  await invokes.gameApplyHistory(history);
+	// apply history
+	await invokes.gameApplyHistory(history);
 
-  // obtain results
-  results = await invokes.gameGetResults();
+	// obtain results
+	results = await invokes.gameGetResults();
 
-  let append: number[] = [];
-  if (selectedChanceIndexTmp !== -1) {
-    append = spots.value
-      .slice(selectedChanceIndexTmp, selectedSpotIndexTmp)
-      .map((spot) => spot.selectedIndex);
-  }
+	let append: number[] = [];
+	if (selectedChanceIndexTmp !== -1) {
+		append = spots.value
+			.slice(selectedChanceIndexTmp, selectedSpotIndexTmp)
+			.map((spot) => spot.selectedIndex);
+	}
 
-  // obtain actions after skipped chances
-  const nextActions = await invokes.gameActionsAfter(append);
+	// obtain actions after skipped chances
+	const nextActions = await invokes.gameActionsAfter(append);
 
-  canChanceReports.value =
-    selectedChanceIndexTmp !== -1 &&
-    spots.value
-      .slice(selectedChanceIndexTmp + 3, selectedSpotIndexTmp)
-      .every((spot) => spot.type !== "chance") &&
-    nextActions[0] !== "chance";
+	canChanceReports.value =
+		selectedChanceIndexTmp !== -1 &&
+		spots.value
+			.slice(selectedChanceIndexTmp + 3, selectedSpotIndexTmp)
+			.every((spot) => spot.type !== "chance") &&
+		nextActions[0] !== "chance";
 
-  // if possible, obtain chance reports
-  if (canChanceReports.value) {
-    let player: "oop" | "ip" | "terminal";
-    let numActions: number;
+	// if possible, obtain chance reports
+	if (canChanceReports.value) {
+		let player: "oop" | "ip" | "terminal";
+		let numActions: number;
 
-    if (nextActions[0] === "terminal") {
-      player = "terminal";
-      numActions = 0;
-    } else {
-      player = append.length % 2 === 1 ? "oop" : "ip";
-      numActions = nextActions.length;
-    }
+		if (nextActions[0] === "terminal") {
+			player = "terminal";
+			numActions = 0;
+		} else {
+			player = append.length % 2 === 1 ? "oop" : "ip";
+			numActions = nextActions.length;
+		}
 
-    chanceReports = await invokes.gameGetChanceReports(
-      append,
-      player,
-      numActions
-    );
-  } else {
-    chanceReports = null;
-  }
+		chanceReports = await invokes.gameGetChanceReports(
+			append,
+			player,
+			numActions,
+		);
+	} else {
+		chanceReports = null;
+	}
 
-  // update total bet amounts
-  totalBetAmount = await invokes.gameTotalBetAmount([]);
-  totalBetAmountAppended = await invokes.gameTotalBetAmount(append);
+	// update total bet amounts
+	totalBetAmount = await invokes.gameTotalBetAmount([]);
+	totalBetAmountAppended = await invokes.gameTotalBetAmount(append);
 
-  // if need to splice, splice spots
-  if (needSplice) {
-    if (nextActions[0] === "terminal") {
-      spliceSpotsTerminal(spotIndex);
-    } else if (nextActions[0] === "chance") {
-      await spliceSpotsChance(spotIndex);
-    } else {
-      spliceSpotsPlayer(spotIndex, nextActions);
-    }
-  }
+	// if need to splice, splice spots
+	if (needSplice) {
+		if (nextActions[0] === "terminal") {
+			spliceSpotsTerminal(spotIndex);
+		} else if (nextActions[0] === "chance") {
+			await spliceSpotsChance(spotIndex);
+		} else {
+			spliceSpotsPlayer(spotIndex, nextActions);
+		}
+	}
 
-  // update action rates if necessary
-  const spot = spots.value[selectedSpotIndexTmp];
-  if (spot.type === "player" && selectedChanceIndexTmp === -1) {
-    const playerIndex = spot.player === "oop" ? 0 : 1;
-    if (results.isEmpty & (1 << playerIndex)) {
-      rates.value = null;
-    } else {
-      const n = props.cards[playerIndex].length;
-      rates.value = Array.from({ length: spot.actions.length }, (_, i) => {
-        if (!results) throw new Error("null results");
-        const rates = results.strategy.slice(i * n, (i + 1) * n);
-        return average(rates, results.normalizer[playerIndex]);
-      });
-    }
-  } else {
-    rates.value = null;
-  }
+	// update action rates if necessary
+	const spot = spots.value[selectedSpotIndexTmp];
+	if (spot.type === "player" && selectedChanceIndexTmp === -1) {
+		const playerIndex = spot.player === "oop" ? 0 : 1;
+		if (results.isEmpty & (1 << playerIndex)) {
+			rates.value = null;
+		} else {
+			const n = props.cards[playerIndex].length;
+			rates.value = Array.from({ length: spot.actions.length }, (_, i) => {
+				if (!results) throw new Error("null results");
+				const rates = results.strategy.slice(i * n, (i + 1) * n);
+				return average(rates, results.normalizer[playerIndex]);
+			});
+		}
+	} else {
+		rates.value = null;
+	}
 
-  // update refs
-  selectedSpotIndex.value = selectedSpotIndexTmp;
-  selectedChanceIndex.value = selectedChanceIndexTmp;
-  isDealing.value = false;
+	// update refs
+	selectedSpotIndex.value = selectedSpotIndexTmp;
+	selectedChanceIndex.value = selectedChanceIndexTmp;
+	isDealing.value = false;
 
-  // emit event
-  emit(
-    "trigger-update",
-    selectedSpot.value,
-    selectedChance.value,
-    currentBoard.value,
-    results,
-    chanceReports,
-    totalBetAmount
-  );
+	// emit event
+	emit(
+		"trigger-update",
+		selectedSpot.value,
+		selectedChance.value,
+		currentBoard.value,
+		results,
+		chanceReports,
+		totalBetAmount,
+	);
 
-  // scroll to selected spot
-  await nextTick();
-  if (navDiv.value) {
-    const selectedChild = navDiv.value.children[selectedSpotIndex.value];
-    if (selectedChild) {
-      selectedChild.scrollIntoView({
-        behavior: "smooth",
-        inline: "center",
-      });
-    }
-  }
+	// scroll to selected spot
+	await nextTick();
+	if (navDiv.value) {
+		const selectedChild = navDiv.value.children[selectedSpotIndex.value];
+		if (selectedChild) {
+			selectedChild.scrollIntoView({
+				behavior: "smooth",
+				inline: "center",
+			});
+		}
+	}
 };
 
 const spliceSpotsTerminal = (spotIndex: number) => {
-  if (!results) throw new Error("null results");
+	if (!results) throw new Error("null results");
 
-  const prevSpot = spots.value[spotIndex - 1] as SpotPlayer;
-  const prevAction = prevSpot.actions[prevSpot.selectedIndex];
+	const prevSpot = spots.value[spotIndex - 1] as SpotPlayer;
+	const prevAction = prevSpot.actions[prevSpot.selectedIndex];
 
-  const chanceIndex = selectedChanceIndexTmp;
-  const chanceSkipped =
-    chanceIndex !== -1 &&
-    (spots.value[chanceIndex] as SpotChance).selectedIndex === -1;
+	const chanceIndex = selectedChanceIndexTmp;
+	const chanceSkipped =
+		chanceIndex !== -1 &&
+		(spots.value[chanceIndex] as SpotChance).selectedIndex === -1;
 
-  let equityOop;
-  if (prevAction.name === "Fold") {
-    equityOop = prevSpot.player === "oop" ? 0 : 1;
-  } else if (chanceSkipped || results.isEmpty) {
-    equityOop = -1;
-  } else {
-    equityOop = average(results.equity[0], results.normalizer[0]);
-  }
+	let equityOop;
+	if (prevAction.name === "Fold") {
+		equityOop = prevSpot.player === "oop" ? 0 : 1;
+	} else if (chanceSkipped || results.isEmpty) {
+		equityOop = -1;
+	} else {
+		equityOop = average(results.equity[0], results.normalizer[0]);
+	}
 
-  const betSum = totalBetAmountAppended[0] + totalBetAmountAppended[1];
-  spots.value.splice(spotIndex, spots.value.length, {
-    type: "terminal",
-    index: spotIndex,
-    player: "end",
-    selectedIndex: -1,
-    prevPlayer: prevSpot.player,
-    equityOop,
-    pot: config.startingPot + betSum,
-  });
+	const betSum = totalBetAmountAppended[0] + totalBetAmountAppended[1];
+	spots.value.splice(spotIndex, spots.value.length, {
+		type: "terminal",
+		index: spotIndex,
+		player: "end",
+		selectedIndex: -1,
+		prevPlayer: prevSpot.player,
+		equityOop,
+		pot: config.startingPot + betSum,
+	});
 };
 
 const spliceSpotsChance = async (spotIndex: number) => {
-  type SpotTurn = SpotRoot | SpotChance;
-  const prevSpot = spots.value[spotIndex - 1] as SpotPlayer;
-  const turnSpot = spots.value
-    .slice(0, spotIndex)
-    .find((spot) => spot.player === "turn") as SpotTurn | undefined;
+	type SpotTurn = SpotRoot | SpotChance;
+	const prevSpot = spots.value[spotIndex - 1] as SpotPlayer;
+	const turnSpot = spots.value
+		.slice(0, spotIndex)
+		.find((spot) => spot.player === "turn") as SpotTurn | undefined;
 
-  let append: number[] = [];
-  if (selectedChanceIndexTmp !== -1) {
-    append = spots.value
-      .slice(selectedChanceIndexTmp, spotIndex)
-      .map((spot) => spot.selectedIndex);
-  }
+	let append: number[] = [];
+	if (selectedChanceIndexTmp !== -1) {
+		append = spots.value
+			.slice(selectedChanceIndexTmp, spotIndex)
+			.map((spot) => spot.selectedIndex);
+	}
 
-  let possibleCards = 0n;
-  if (!(turnSpot?.type === "chance" && turnSpot.selectedIndex === -1)) {
-    possibleCards = await invokes.gamePossibleCards();
-  }
+	let possibleCards = 0n;
+	if (!(turnSpot?.type === "chance" && turnSpot.selectedIndex === -1)) {
+		possibleCards = await invokes.gamePossibleCards();
+	}
 
-  append.push(-1);
-  const nextActions = await invokes.gameActionsAfter(append);
+	append.push(-1);
+	const nextActions = await invokes.gameActionsAfter(append);
 
-  let numBetActions = nextActions.length;
-  while (
-    numBetActions > 0 &&
-    nextActions[nextActions.length - numBetActions].split(":")[1] === "0"
-  ) {
-    --numBetActions;
-  }
+	let numBetActions = nextActions.length;
+	while (
+		numBetActions > 0 &&
+		nextActions[nextActions.length - numBetActions].split(":")[1] === "0"
+	) {
+		--numBetActions;
+	}
 
-  if (selectedChanceIndexTmp === -1) {
-    canChanceReports.value = true;
-    const numActions = nextActions.length;
-    chanceReports = await invokes.gameGetChanceReports(
-      append,
-      "oop",
-      numActions
-    );
-  }
+	if (selectedChanceIndexTmp === -1) {
+		canChanceReports.value = true;
+		const numActions = nextActions.length;
+		chanceReports = await invokes.gameGetChanceReports(
+			append,
+			"oop",
+			numActions,
+		);
+	}
 
-  spots.value.splice(
-    spotIndex,
-    spots.value.length,
-    {
-      type: "chance",
-      index: spotIndex,
-      player: turnSpot ? "river" : "turn",
-      selectedIndex: -1,
-      prevPlayer: prevSpot.player,
-      cards: Array.from({ length: 52 }, (_, i) => ({
-        card: i,
-        isSelected: false,
-        isDead: !(possibleCards & (1n << BigInt(i))),
-      })),
-      pot: config.startingPot + 2 * totalBetAmountAppended[0],
-      stack: config.effectiveStack - totalBetAmountAppended[0],
-    },
-    {
-      type: "player",
-      index: spotIndex + 1,
-      player: "oop",
-      selectedIndex: -1,
-      actions: nextActions.map((action, i) => {
-        const [name, amount] = action.split(":");
-        return {
-          index: i,
-          name,
-          amount,
-          rate: -1,
-          isSelected: false,
-          color: actionColor(name, i, nextActions.length, numBetActions),
-        };
-      }),
-    }
-  );
+	spots.value.splice(
+		spotIndex,
+		spots.value.length,
+		{
+			type: "chance",
+			index: spotIndex,
+			player: turnSpot ? "river" : "turn",
+			selectedIndex: -1,
+			prevPlayer: prevSpot.player,
+			cards: Array.from({ length: 52 }, (_, i) => ({
+				card: i,
+				isSelected: false,
+				isDead: !(possibleCards & (1n << BigInt(i))),
+			})),
+			pot: config.startingPot + 2 * totalBetAmountAppended[0],
+			stack: config.effectiveStack - totalBetAmountAppended[0],
+		},
+		{
+			type: "player",
+			index: spotIndex + 1,
+			player: "oop",
+			selectedIndex: -1,
+			actions: nextActions.map((action, i) => {
+				const [name, amount] = action.split(":");
+				return {
+					index: i,
+					name,
+					amount,
+					rate: -1,
+					isSelected: false,
+					color: actionColor(name, i, nextActions.length, numBetActions),
+				};
+			}),
+		},
+	);
 
-  ++selectedSpotIndexTmp;
+	++selectedSpotIndexTmp;
 
-  if (selectedChanceIndexTmp === -1) {
-    selectedChanceIndexTmp = spotIndex;
-  }
+	if (selectedChanceIndexTmp === -1) {
+		selectedChanceIndexTmp = spotIndex;
+	}
 };
 
 const spliceSpotsPlayer = (spotIndex: number, actions: string[]) => {
-  const prevSpot = spots.value[spotIndex - 1];
-  const player = prevSpot.player === "oop" ? "ip" : "oop";
+	const prevSpot = spots.value[spotIndex - 1];
+	const player = prevSpot.player === "oop" ? "ip" : "oop";
 
-  let numBetActions = actions.length;
-  if (actions[0].split(":")[1] === "0") --numBetActions;
-  if (actions[1]?.split(":")[1] === "0") --numBetActions;
+	let numBetActions = actions.length;
+	if (actions[0].split(":")[1] === "0") --numBetActions;
+	if (actions[1]?.split(":")[1] === "0") --numBetActions;
 
-  spots.value.splice(spotIndex, spots.value.length, {
-    type: "player",
-    index: spotIndex,
-    player,
-    selectedIndex: -1,
-    actions: actions.map((action, i) => {
-      const [name, amount] = action.split(":");
-      return {
-        index: i,
-        name,
-        amount,
-        isSelected: false,
-        color: actionColor(name, i, actions.length, numBetActions),
-      };
-    }),
-  });
+	spots.value.splice(spotIndex, spots.value.length, {
+		type: "player",
+		index: spotIndex,
+		player,
+		selectedIndex: -1,
+		actions: actions.map((action, i) => {
+			const [name, amount] = action.split(":");
+			return {
+				index: i,
+				name,
+				amount,
+				isSelected: false,
+				color: actionColor(name, i, actions.length, numBetActions),
+			};
+		}),
+	});
 };
 
 const play = async (spotIndex: number, actionIndex: number) => {
-  const spot = spots.value[spotIndex] as SpotPlayer;
+	const spot = spots.value[spotIndex] as SpotPlayer;
 
-  if (spot.selectedIndex !== -1) {
-    spot.actions[spot.selectedIndex].isSelected = false;
-  }
-  spot.actions[actionIndex].isSelected = true;
-  spot.selectedIndex = actionIndex;
+	if (spot.selectedIndex !== -1) {
+		spot.actions[spot.selectedIndex].isSelected = false;
+	}
+	spot.actions[actionIndex].isSelected = true;
+	spot.selectedIndex = actionIndex;
 
-  await selectSpot(spotIndex + 1, true);
+	await selectSpot(spotIndex + 1, true);
 };
 
 const deal = async (card: number) => {
-  const spot = selectedChance.value;
-  if (!spot) throw new Error("null spot");
+	const spot = selectedChance.value;
+	if (!spot) throw new Error("null spot");
 
-  isDealing.value = true;
+	isDealing.value = true;
 
-  if (spot.selectedIndex !== -1) {
-    spot.cards[spot.selectedIndex].isSelected = false;
-  }
-  spot.cards[card].isSelected = true;
-  spot.selectedIndex = card;
+	if (spot.selectedIndex !== -1) {
+		spot.cards[spot.selectedIndex].isSelected = false;
+	}
+	spot.cards[card].isSelected = true;
+	spot.selectedIndex = card;
 
-  await selectSpot(selectedSpotIndex.value, false, true);
+	await selectSpot(selectedSpotIndex.value, false, true);
 };
 
 const dealArrow = async (
-  spot: SpotChance,
-  rankDir: number,
-  suitDir: number
+	spot: SpotChance,
+	rankDir: number,
+	suitDir: number,
 ) => {
-  const offset = rankDir ? 4 * rankDir : suitDir;
-  let card = spot.selectedIndex + offset;
+	const offset = rankDir ? 4 * rankDir : suitDir;
+	let card = spot.selectedIndex + offset;
 
-  for (; 0 <= card && card < 52; card += offset) {
-    if (!spot.cards[card].isDead) break;
-  }
+	for (; 0 <= card && card < 52; card += offset) {
+		if (!spot.cards[card].isDead) break;
+	}
 
-  if (card < 0 || 52 <= card) {
-    throw new Error("invalid card");
-  }
+	if (card < 0 || 52 <= card) {
+		throw new Error("invalid card");
+	}
 
-  isDealing.value = true;
+	isDealing.value = true;
 
-  spot.cards[spot.selectedIndex].isSelected = false;
-  spot.cards[card].isSelected = true;
-  spot.selectedIndex = card;
+	spot.cards[spot.selectedIndex].isSelected = false;
+	spot.cards[card].isSelected = true;
+	spot.selectedIndex = card;
 
-  const selectedChanceIndexBak = selectedChanceIndex.value;
-  selectedChanceIndex.value = spot.index;
+	const selectedChanceIndexBak = selectedChanceIndex.value;
+	selectedChanceIndex.value = spot.index;
 
-  await selectSpot(selectedSpotIndex.value, false, true);
+	await selectSpot(selectedSpotIndex.value, false, true);
 
-  if (
-    selectedChanceIndex.value === -1 &&
-    selectedChanceIndexBak !== spot.index
-  ) {
-    selectedChanceIndex.value = selectedChanceIndexBak;
-  }
+	if (
+		selectedChanceIndex.value === -1 &&
+		selectedChanceIndexBak !== spot.index
+	) {
+		selectedChanceIndex.value = selectedChanceIndexBak;
+	}
 };
 
 const isCardAvailable = (
-  spot: SpotChance,
-  rankDir: number,
-  suitDir: number
+	spot: SpotChance,
+	rankDir: number,
+	suitDir: number,
 ) => {
-  let card = spot.selectedIndex;
+	let card = spot.selectedIndex;
 
-  if (rankDir) {
-    card += 4 * rankDir;
-    for (; 0 <= card && card < 52; card += 4 * rankDir) {
-      if (!spot.cards[card].isDead) return true;
-    }
-  } else {
-    const rank = card >>> 2;
-    card += suitDir;
-    for (; card >>> 2 === rank; card += suitDir) {
-      if (!spot.cards[card].isDead) return true;
-    }
-  }
+	if (rankDir) {
+		card += 4 * rankDir;
+		for (; 0 <= card && card < 52; card += 4 * rankDir) {
+			if (!spot.cards[card].isDead) return true;
+		}
+	} else {
+		const rank = card >>> 2;
+		card += suitDir;
+		for (; card >>> 2 === rank; card += suitDir) {
+			if (!spot.cards[card].isDead) return true;
+		}
+	}
 
-  return false;
+	return false;
 };
 
 watch(dealtCard, async (card) => {
-  if (card === -1) return;
-  await deal(card);
+	if (card === -1) return;
+	await deal(card);
 });
 
 const spotCards = (spot: SpotRoot | SpotChance) => {
-  if (spot.type === "root") {
-    return spot.board.map((card) => cardText(card));
-  } else if (spot.selectedIndex === -1) {
-    return [{ rank: "?", suit: "", colorClass: "text-black" }];
-  } else {
-    return [cardText(spot.selectedIndex)];
-  }
+	if (spot.type === "root") {
+		return spot.board.map((card) => cardText(card));
+	}
+	if (spot.selectedIndex === -1) {
+		return [{ rank: "?", suit: "", colorClass: "text-black" }];
+	}
+	return [cardText(spot.selectedIndex)];
 };
 </script>

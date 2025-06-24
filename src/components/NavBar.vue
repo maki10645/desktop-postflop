@@ -56,8 +56,8 @@
 </template>
 
 <script setup lang="ts">
+import { ChartBarIcon, ComputerDesktopIcon } from "@heroicons/vue/24/solid";
 import { useStore } from "../store";
-import { ComputerDesktopIcon, ChartBarIcon } from "@heroicons/vue/24/solid";
 
 const store = useStore();
 </script>

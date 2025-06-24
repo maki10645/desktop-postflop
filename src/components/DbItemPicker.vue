@@ -473,224 +473,224 @@ import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { XMarkIcon } from "@heroicons/vue/20/solid";
 
 type Item = {
-  isGroup: false;
-  path: string[];
-  pathStr: string;
-  value: unknown;
-  isEditing: boolean;
+	isGroup: false;
+	path: string[];
+	pathStr: string;
+	value: unknown;
+	isEditing: boolean;
 };
 
 type Group = {
-  isGroup: true;
-  path: string[];
-  pathStr: string;
-  opened: boolean;
-  isEditing: boolean;
-  items: (Item | Group)[];
+	isGroup: true;
+	path: string[];
+	pathStr: string;
+	opened: boolean;
+	isEditing: boolean;
+	items: (Item | Group)[];
 };
 
 const isEqual = (lhs: unknown, rhs: unknown) => {
-  if (lhs === null || typeof lhs !== "object") return lhs === rhs;
-  if (Array.isArray(lhs)) {
-    if (!Array.isArray(rhs) || lhs.length !== rhs.length) return false;
-    for (let i = 0; i < lhs.length; ++i) {
-      if (!isEqual(lhs[i], rhs[i])) return false;
-    }
-  } else {
-    if (rhs === null || typeof rhs !== "object") return false;
-    const lhsEntries = Object.entries(lhs);
-    const rhsEntries = Object.entries(rhs);
-    if (lhsEntries.length !== rhsEntries.length) return false;
-    lhsEntries.sort((a, b) => a[0].localeCompare(b[0]));
-    rhsEntries.sort((a, b) => a[0].localeCompare(b[0]));
-    for (let i = 0; i < lhsEntries.length; ++i) {
-      if (lhsEntries[i][0] !== rhsEntries[i][0]) return false;
-      if (!isEqual(lhsEntries[i][1], rhsEntries[i][1])) return false;
-    }
-  }
-  return true;
+	if (lhs === null || typeof lhs !== "object") return lhs === rhs;
+	if (Array.isArray(lhs)) {
+		if (!Array.isArray(rhs) || lhs.length !== rhs.length) return false;
+		for (let i = 0; i < lhs.length; ++i) {
+			if (!isEqual(lhs[i], rhs[i])) return false;
+		}
+	} else {
+		if (rhs === null || typeof rhs !== "object") return false;
+		const lhsEntries = Object.entries(lhs);
+		const rhsEntries = Object.entries(rhs);
+		if (lhsEntries.length !== rhsEntries.length) return false;
+		lhsEntries.sort((a, b) => a[0].localeCompare(b[0]));
+		rhsEntries.sort((a, b) => a[0].localeCompare(b[0]));
+		for (let i = 0; i < lhsEntries.length; ++i) {
+			if (lhsEntries[i][0] !== rhsEntries[i][0]) return false;
+			if (!isEqual(lhsEntries[i][1], rhsEntries[i][1])) return false;
+		}
+	}
+	return true;
 };
 
 const clone = (value: unknown) => {
-  if (value === null || typeof value !== "object") return value;
-  if (Array.isArray(value)) return [...value];
-  return { ...value };
+	if (value === null || typeof value !== "object") return value;
+	if (Array.isArray(value)) return [...value];
+	return { ...value };
 };
 
 const groupToDbGroup = (group: Group): Db.DbGroup => ({
-  name0: group.path[0],
-  name1: group.path[1] ?? "",
-  name2: group.path[2] ?? "",
-  name3: group.path[3] ?? "",
-  isGroup: 1,
+	name0: group.path[0],
+	name1: group.path[1] ?? "",
+	name2: group.path[2] ?? "",
+	name3: group.path[3] ?? "",
+	isGroup: 1,
 });
 
 const itemToDbItem = (item: Item): Db.DbItem => ({
-  name0: item.path[0],
-  name1: item.path[1] ?? "",
-  name2: item.path[2] ?? "",
-  name3: item.path[3] ?? "",
-  isGroup: 0,
-  value: clone(item.value),
+	name0: item.path[0],
+	name1: item.path[1] ?? "",
+	name2: item.path[2] ?? "",
+	name3: item.path[3] ?? "",
+	isGroup: 0,
+	value: clone(item.value),
 });
 
 const toDbItemOrGroup = (itemOrGroup: Item | Group): Db.DbItem | Db.DbGroup =>
-  itemOrGroup.isGroup ? groupToDbGroup(itemOrGroup) : itemToDbItem(itemOrGroup);
+	itemOrGroup.isGroup ? groupToDbGroup(itemOrGroup) : itemToDbItem(itemOrGroup);
 
 type AddItemMessage = {
-  type: "addItem";
-  path: string[];
-  value: unknown;
+	type: "addItem";
+	path: string[];
+	value: unknown;
 };
 
 type OverwriteItemMessage = {
-  type: "overwriteItem";
-  path: string[];
-  value: unknown;
+	type: "overwriteItem";
+	path: string[];
+	value: unknown;
 };
 
 type RenameItemMessage = {
-  type: "renameItem";
-  path: string[];
-  newName: string;
+	type: "renameItem";
+	path: string[];
+	newName: string;
 };
 
 type AddGroupMessage = {
-  type: "addGroup";
-  path: string[];
+	type: "addGroup";
+	path: string[];
 };
 
 type DeleteItemMessage = {
-  type: "deleteItem";
-  path: string[];
+	type: "deleteItem";
+	path: string[];
 };
 
 type ImportJsonMessage = {
-  type: "importJson";
+	type: "importJson";
 };
 
 type Message =
-  | AddItemMessage
-  | OverwriteItemMessage
-  | RenameItemMessage
-  | AddGroupMessage
-  | DeleteItemMessage
-  | ImportJsonMessage;
+	| AddItemMessage
+	| OverwriteItemMessage
+	| RenameItemMessage
+	| AddGroupMessage
+	| DeleteItemMessage
+	| ImportJsonMessage;
 
 interface Props {
-  storeName: string;
-  index?: number;
-  value: unknown;
-  allowSave: boolean;
-  hideImportExport?: boolean;
+	storeName: string;
+	index?: number;
+	value: unknown;
+	allowSave: boolean;
+	hideImportExport?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  index: 0,
-  hideImportExport: false,
+	index: 0,
+	hideImportExport: false,
 });
-const emit = defineEmits<{ (event: "load-item", value: unknown): void }>();
+const emit = defineEmits<(event: "load-item", value: unknown) => void>();
 
 const data = ref<(Item | Group)[]>([]);
 const selectedValue = ref(false as false | string);
 
 const selectedItem = computed(() => {
-  if (selectedValue.value === false) return null;
-  const path = JSON.parse(selectedValue.value);
-  let item: Item | Group | undefined;
-  let items = data.value;
-  for (let i = 0; i < path.length; ++i) {
-    item = items.find((item) => item.path[i] === path[i]);
-    if (item === undefined) return null;
-    if (i < path.length - 1) {
-      if (!item.isGroup) return null;
-      items = item.items;
-    }
-  }
-  return item ? { item, parentItems: items } : null;
+	if (selectedValue.value === false) return null;
+	const path = JSON.parse(selectedValue.value);
+	let item: Item | Group | undefined;
+	let items = data.value;
+	for (let i = 0; i < path.length; ++i) {
+		item = items.find((item) => item.path[i] === path[i]);
+		if (item === undefined) return null;
+		if (i < path.length - 1) {
+			if (!item.isGroup) return null;
+			items = item.items;
+		}
+	}
+	return item ? { item, parentItems: items } : null;
 });
 
 const errorOccured = ref(false);
 
 // load data from DB
 const loadData = async () => {
-  const masterData = await Db.getArray(props.storeName);
+	const masterData = await Db.getArray(props.storeName);
 
-  masterData.sort(
-    (a, b) =>
-      Number(b.name1 === "") - Number(a.name1 === "") ||
-      Number(b.name2 === "") - Number(a.name2 === "") ||
-      Number(b.name3 === "") - Number(a.name3 === "") ||
-      b.isGroup - a.isGroup ||
-      a.name0.localeCompare(b.name0, undefined, { numeric: true }) ||
-      a.name1.localeCompare(b.name1, undefined, { numeric: true }) ||
-      a.name2.localeCompare(b.name2, undefined, { numeric: true }) ||
-      a.name3.localeCompare(b.name3, undefined, { numeric: true })
-  );
+	masterData.sort(
+		(a, b) =>
+			Number(b.name1 === "") - Number(a.name1 === "") ||
+			Number(b.name2 === "") - Number(a.name2 === "") ||
+			Number(b.name3 === "") - Number(a.name3 === "") ||
+			b.isGroup - a.isGroup ||
+			a.name0.localeCompare(b.name0, undefined, { numeric: true }) ||
+			a.name1.localeCompare(b.name1, undefined, { numeric: true }) ||
+			a.name2.localeCompare(b.name2, undefined, { numeric: true }) ||
+			a.name3.localeCompare(b.name3, undefined, { numeric: true }),
+	);
 
-  data.value = [];
-  selectedValue.value = false;
+	data.value = [];
+	selectedValue.value = false;
 
-  const dataMap = new Map<string, Item | Group>();
-  const dataItems = new Map<string, (Item | Group)[]>();
-  dataItems.set(JSON.stringify([]), data.value);
+	const dataMap = new Map<string, Item | Group>();
+	const dataItems = new Map<string, (Item | Group)[]>();
+	dataItems.set(JSON.stringify([]), data.value);
 
-  for (const masterItem of masterData) {
-    if (masterItem.isGroup) {
-      const path = [masterItem.name0, masterItem.name1, masterItem.name2, ""];
-      const depth = path.findIndex((name) => name === "");
-      path.length = depth;
-      const pathStr = JSON.stringify(path);
-      const parent = path.slice(0, -1);
-      const parentStr = JSON.stringify(parent);
-      const parentItems = dataItems.get(parentStr);
-      if (parentItems) {
-        const items: (Item | Group)[] = [];
-        const group: Group = {
-          isGroup: true,
-          path,
-          pathStr,
-          opened: depth === 1,
-          isEditing: false,
-          items,
-        };
-        parentItems.push(group);
-        dataMap.set(pathStr, group);
-        dataItems.set(pathStr, items);
-      } else {
-        errorOccured.value = true;
-        return;
-      }
-    } else {
-      const path = [
-        masterItem.name0,
-        masterItem.name1,
-        masterItem.name2,
-        masterItem.name3,
-        "",
-      ];
-      const depth = path.findIndex((name) => name === "");
-      path.splice(depth);
-      const pathStr = JSON.stringify(path);
-      const parent = path.slice(0, -1);
-      const parentStr = JSON.stringify(parent);
-      const parentItems = dataItems.get(parentStr);
-      if (parentItems) {
-        const item: Item = {
-          isGroup: false,
-          path,
-          pathStr,
-          value: masterItem.value,
-          isEditing: false,
-        };
-        parentItems.push(item);
-        dataMap.set(pathStr, item);
-      } else {
-        errorOccured.value = true;
-        return;
-      }
-    }
-  }
+	for (const masterItem of masterData) {
+		if (masterItem.isGroup) {
+			const path = [masterItem.name0, masterItem.name1, masterItem.name2, ""];
+			const depth = path.findIndex((name) => name === "");
+			path.length = depth;
+			const pathStr = JSON.stringify(path);
+			const parent = path.slice(0, -1);
+			const parentStr = JSON.stringify(parent);
+			const parentItems = dataItems.get(parentStr);
+			if (parentItems) {
+				const items: (Item | Group)[] = [];
+				const group: Group = {
+					isGroup: true,
+					path,
+					pathStr,
+					opened: depth === 1,
+					isEditing: false,
+					items,
+				};
+				parentItems.push(group);
+				dataMap.set(pathStr, group);
+				dataItems.set(pathStr, items);
+			} else {
+				errorOccured.value = true;
+				return;
+			}
+		} else {
+			const path = [
+				masterItem.name0,
+				masterItem.name1,
+				masterItem.name2,
+				masterItem.name3,
+				"",
+			];
+			const depth = path.findIndex((name) => name === "");
+			path.splice(depth);
+			const pathStr = JSON.stringify(path);
+			const parent = path.slice(0, -1);
+			const parentStr = JSON.stringify(parent);
+			const parentItems = dataItems.get(parentStr);
+			if (parentItems) {
+				const item: Item = {
+					isGroup: false,
+					path,
+					pathStr,
+					value: masterItem.value,
+					isEditing: false,
+				};
+				parentItems.push(item);
+				dataMap.set(pathStr, item);
+			} else {
+				errorOccured.value = true;
+				return;
+			}
+		}
+	}
 };
 
 loadData();
@@ -699,72 +699,72 @@ loadData();
 const channel = new BroadcastChannel(`item-picker-${props.storeName}`);
 
 channel.onmessage = async (event: MessageEvent<Message>) => {
-  if (errorOccured.value) return;
+	if (errorOccured.value) return;
 
-  const message = event.data;
-  const pathStr =
-    message.type === "importJson" ? "" : JSON.stringify(message.path);
+	const message = event.data;
+	const pathStr =
+		message.type === "importJson" ? "" : JSON.stringify(message.path);
 
-  if (message.type === "addItem") {
-    // add item
-    if (message.path.length > 1) {
-      selectedValue.value = JSON.stringify(message.path.slice(0, -1));
-      if (selectedItem.value === null) {
-        errorOccured.value = true;
-        selectedValue.value = false;
-        return;
-      }
-    } else {
-      selectedValue.value = false;
-    }
-    await addOrOverwriteItem(
-      message.value,
-      message.path[message.path.length - 1]
-    );
-  } else if (message.type === "overwriteItem") {
-    // overwrite item
-    selectedValue.value = pathStr;
-    if (selectedItem.value === null) {
-      errorOccured.value = true;
-      selectedValue.value = false;
-      return;
-    }
-    await addOrOverwriteItem(message.value);
-  } else if (message.type === "renameItem") {
-    // rename item
-    selectedValue.value = pathStr;
-    if (selectedItem.value === null) {
-      errorOccured.value = true;
-      selectedValue.value = false;
-      return;
-    }
-    await tryRename(selectedItem.value.item, message.newName);
-  } else if (message.type === "addGroup") {
-    // add group
-    if (message.path.length > 1) {
-      selectedValue.value = JSON.stringify(message.path.slice(0, -1));
-      if (selectedItem.value === null) {
-        errorOccured.value = true;
-        selectedValue.value = false;
-        return;
-      }
-    } else {
-      selectedValue.value = false;
-    }
-    await addGroup(message.path[message.path.length - 1]);
-  } else if (message.type === "deleteItem") {
-    // delete item
-    selectedValue.value = pathStr;
-    if (selectedItem.value === null) {
-      errorOccured.value = true;
-      selectedValue.value = false;
-      return;
-    }
-    await deleteItem(false);
-  } else if (message.type === "importJson") {
-    // import JSON
-    await loadData();
-  }
+	if (message.type === "addItem") {
+		// add item
+		if (message.path.length > 1) {
+			selectedValue.value = JSON.stringify(message.path.slice(0, -1));
+			if (selectedItem.value === null) {
+				errorOccured.value = true;
+				selectedValue.value = false;
+				return;
+			}
+		} else {
+			selectedValue.value = false;
+		}
+		await addOrOverwriteItem(
+			message.value,
+			message.path[message.path.length - 1],
+		);
+	} else if (message.type === "overwriteItem") {
+		// overwrite item
+		selectedValue.value = pathStr;
+		if (selectedItem.value === null) {
+			errorOccured.value = true;
+			selectedValue.value = false;
+			return;
+		}
+		await addOrOverwriteItem(message.value);
+	} else if (message.type === "renameItem") {
+		// rename item
+		selectedValue.value = pathStr;
+		if (selectedItem.value === null) {
+			errorOccured.value = true;
+			selectedValue.value = false;
+			return;
+		}
+		await tryRename(selectedItem.value.item, message.newName);
+	} else if (message.type === "addGroup") {
+		// add group
+		if (message.path.length > 1) {
+			selectedValue.value = JSON.stringify(message.path.slice(0, -1));
+			if (selectedItem.value === null) {
+				errorOccured.value = true;
+				selectedValue.value = false;
+				return;
+			}
+		} else {
+			selectedValue.value = false;
+		}
+		await addGroup(message.path[message.path.length - 1]);
+	} else if (message.type === "deleteItem") {
+		// delete item
+		selectedValue.value = pathStr;
+		if (selectedItem.value === null) {
+			errorOccured.value = true;
+			selectedValue.value = false;
+			return;
+		}
+		await deleteItem(false);
+	} else if (message.type === "importJson") {
+		// import JSON
+		await loadData();
+	}
 };
 
 const isEditing = ref(false);
@@ -773,533 +773,533 @@ const duplicateName = ref([] as string[]);
 const nameInput = ref(null as HTMLInputElement[] | null);
 
 const unselect = (ev: MouseEvent) => {
-  const target = ev.target as HTMLElement;
-  if (target.tagName === "DIV") {
-    selectedValue.value = false;
-  }
+	const target = ev.target as HTMLElement;
+	if (target.tagName === "DIV") {
+		selectedValue.value = false;
+	}
 };
 
 const closeGroup = (group: Group) => {
-  group.opened = false;
-  for (const child of group.items) {
-    if (child.isGroup) {
-      closeGroup(child);
-    }
-  }
+	group.opened = false;
+	for (const child of group.items) {
+		if (child.isGroup) {
+			closeGroup(child);
+		}
+	}
 };
 
 const toggleGroup = (group: Group) => {
-  selectedValue.value = false;
-  if (group.opened) {
-    closeGroup(group);
-  } else {
-    group.opened = true;
-  }
+	selectedValue.value = false;
+	if (group.opened) {
+		closeGroup(group);
+	} else {
+		group.opened = true;
+	}
 };
 
 const numDisplayedRows = (group: Group) => {
-  if (!group.opened) return 0;
-  let ret = group.items.length || 1;
-  for (const child of group.items) {
-    if (child.isGroup) {
-      ret += numDisplayedRows(child);
-    }
-  }
-  return ret;
+	if (!group.opened) return 0;
+	let ret = group.items.length || 1;
+	for (const child of group.items) {
+		if (child.isGroup) {
+			ret += numDisplayedRows(child);
+		}
+	}
+	return ret;
 };
 
 const guideDecrease = (group: Group) => {
-  if (group.items.length > 0) {
-    const lastChild = group.items[group.items.length - 1];
-    if (lastChild.isGroup) {
-      return numDisplayedRows(lastChild);
-    }
-  }
-  return 0;
+	if (group.items.length > 0) {
+		const lastChild = group.items[group.items.length - 1];
+		if (lastChild.isGroup) {
+			return numDisplayedRows(lastChild);
+		}
+	}
+	return 0;
 };
 
 const loadItem = () => {
-  if (!selectedItem.value) return;
-  if (selectedItem.value.item.isGroup === false) {
-    emit("load-item", selectedItem.value.item.value);
-  }
-  selectedValue.value = false;
+	if (!selectedItem.value) return;
+	if (selectedItem.value.item.isGroup === false) {
+		emit("load-item", selectedItem.value.item.value);
+	}
+	selectedValue.value = false;
 };
 
 const addOrOverwriteItem = async (value?: unknown, name?: string) => {
-  if (errorOccured.value) return;
+	if (errorOccured.value) return;
 
-  if (selectedItem.value?.item?.isGroup === false) {
-    // overwrite
-    selectedItem.value.item.value = value ?? props.value;
+	if (selectedItem.value?.item?.isGroup === false) {
+		// overwrite
+		selectedItem.value.item.value = value ?? props.value;
 
-    if (value === undefined) {
-      // save and broadcast
-      errorOccured.value ||= !(await Db.overwriteItem(
-        props.storeName,
-        itemToDbItem(selectedItem.value.item)
-      ));
-      channel.postMessage({
-        type: "overwriteItem",
-        path: [...selectedItem.value.item.path],
-        value: clone(props.value),
-      } as OverwriteItemMessage);
-    }
+		if (value === undefined) {
+			// save and broadcast
+			errorOccured.value ||= !(await Db.overwriteItem(
+				props.storeName,
+				itemToDbItem(selectedItem.value.item),
+			));
+			channel.postMessage({
+				type: "overwriteItem",
+				path: [...selectedItem.value.item.path],
+				value: clone(props.value),
+			} as OverwriteItemMessage);
+		}
 
-    selectedValue.value = false;
-  } else {
-    // add
-    const path = selectedItem.value?.item
-      ? [...selectedItem.value.item.path, name ?? ""]
-      : [name ?? ""];
-    const pathStr = JSON.stringify(path);
-    const parentItems = selectedItem.value?.item?.items ?? data.value;
-    parentItems.push({
-      isGroup: false,
-      path,
-      pathStr,
-      value: value ?? props.value,
-      isEditing: false,
-    });
+		selectedValue.value = false;
+	} else {
+		// add
+		const path = selectedItem.value?.item
+			? [...selectedItem.value.item.path, name ?? ""]
+			: [name ?? ""];
+		const pathStr = JSON.stringify(path);
+		const parentItems = selectedItem.value?.item?.items ?? data.value;
+		parentItems.push({
+			isGroup: false,
+			path,
+			pathStr,
+			value: value ?? props.value,
+			isEditing: false,
+		});
 
-    if (name === undefined) {
-      // user must enter a name
-      if (selectedItem.value) {
-        selectedItem.value.item.opened = true;
-      }
-      selectedValue.value = pathStr;
-      await renameItem();
-    } else {
-      // name is provided
-      selectedValue.value = false;
-      const depth = path.length - 1;
-      parentItems.sort(
-        (a, b) =>
-          Number(b.isGroup) - Number(a.isGroup) ||
-          a.path[depth].localeCompare(b.path[depth], undefined, {
-            numeric: true,
-          })
-      );
-    }
-  }
+		if (name === undefined) {
+			// user must enter a name
+			if (selectedItem.value) {
+				selectedItem.value.item.opened = true;
+			}
+			selectedValue.value = pathStr;
+			await renameItem();
+		} else {
+			// name is provided
+			selectedValue.value = false;
+			const depth = path.length - 1;
+			parentItems.sort(
+				(a, b) =>
+					Number(b.isGroup) - Number(a.isGroup) ||
+					a.path[depth].localeCompare(b.path[depth], undefined, {
+						numeric: true,
+					}),
+			);
+		}
+	}
 };
 
 const isNameValid = computed(() => {
-  const name = editingName.value.trim();
-  return name !== "" && !duplicateName.value.includes(name);
+	const name = editingName.value.trim();
+	return name !== "" && !duplicateName.value.includes(name);
 });
 
 const renameItem = async () => {
-  if (!selectedItem.value || errorOccured.value) return;
-  const item = selectedItem.value.item;
-  item.isEditing = true;
-  isEditing.value = true;
-  editingName.value = item.path[item.path.length - 1];
-  duplicateName.value = selectedItem.value.parentItems
-    .map((item) => item.path[item.path.length - 1])
-    .filter((name) => name !== editingName.value);
-  const defaultName = item.isGroup
-    ? "New group"
-    : `New ${props.storeName.slice(0, -1)}`; // remove "s" hack
-  if (editingName.value === "") {
-    let i = 2;
-    let newName = defaultName;
-    while (duplicateName.value.includes(newName)) {
-      newName = `${defaultName} (${i++})`;
-    }
-    editingName.value = newName;
-  }
-  selectedValue.value = false;
-  await nextTick();
-  if (nameInput.value) {
-    nameInput.value[0].select();
-    nameInput.value[0].scrollIntoView({ block: "nearest" });
-  }
+	if (!selectedItem.value || errorOccured.value) return;
+	const item = selectedItem.value.item;
+	item.isEditing = true;
+	isEditing.value = true;
+	editingName.value = item.path[item.path.length - 1];
+	duplicateName.value = selectedItem.value.parentItems
+		.map((item) => item.path[item.path.length - 1])
+		.filter((name) => name !== editingName.value);
+	const defaultName = item.isGroup
+		? "New group"
+		: `New ${props.storeName.slice(0, -1)}`; // remove "s" hack
+	if (editingName.value === "") {
+		let i = 2;
+		let newName = defaultName;
+		while (duplicateName.value.includes(newName)) {
+			newName = `${defaultName} (${i++})`;
+		}
+		editingName.value = newName;
+	}
+	selectedValue.value = false;
+	await nextTick();
+	if (nameInput.value) {
+		nameInput.value[0].select();
+		nameInput.value[0].scrollIntoView({ block: "nearest" });
+	}
 };
 
 const tryRename = async (item: Item | Group, newName?: string) => {
-  // existence check (`tryRename()` might be called when an item is deleted)
-  selectedValue.value = item.pathStr;
-  if (selectedItem.value === null) {
-    selectedValue.value = false;
-    return;
-  }
+	// existence check (`tryRename()` might be called when an item is deleted)
+	selectedValue.value = item.pathStr;
+	if (selectedItem.value === null) {
+		selectedValue.value = false;
+		return;
+	}
 
-  const isUserAction = newName === undefined;
+	const isUserAction = newName === undefined;
 
-  if (newName === undefined) {
-    // is user action
-    item.isEditing = false;
-    isEditing.value = false;
+	if (newName === undefined) {
+		// is user action
+		item.isEditing = false;
+		isEditing.value = false;
 
-    if (!isNameValid.value) {
-      editingName.value = "";
-      if (item.path[item.path.length - 1] === "") {
-        await deleteItem(false);
-      }
-      return;
-    }
+		if (!isNameValid.value) {
+			editingName.value = "";
+			if (item.path[item.path.length - 1] === "") {
+				await deleteItem(false);
+			}
+			return;
+		}
 
-    newName = editingName.value.trim();
-    editingName.value = "";
-  }
+		newName = editingName.value.trim();
+		editingName.value = "";
+	}
 
-  if (errorOccured.value) return;
+	if (errorOccured.value) return;
 
-  const depth = item.path.length - 1;
-  const isNewItem = item.path[depth] === "";
-  const prevPath = [...item.path];
+	const depth = item.path.length - 1;
+	const isNewItem = item.path[depth] === "";
+	const prevPath = [...item.path];
 
-  if (item.path[depth] === newName) {
-    if (isUserAction) {
-      // give focus
-      await nextTick();
-      const name = `item-picker-${props.storeName}-${props.index}`;
-      const checked = document.querySelector(`input[name="${name}"]:checked`);
-      if (checked) {
-        (checked as HTMLInputElement).focus();
-      }
-    }
+	if (item.path[depth] === newName) {
+		if (isUserAction) {
+			// give focus
+			await nextTick();
+			const name = `item-picker-${props.storeName}-${props.index}`;
+			const checked = document.querySelector(`input[name="${name}"]:checked`);
+			if (checked) {
+				(checked as HTMLInputElement).focus();
+			}
+		}
 
-    return;
-  }
+		return;
+	}
 
-  item.path[depth] = newName;
-  item.pathStr = JSON.stringify(item.path);
-  if (item.isGroup) {
-    renameRecursive(item, newName, depth);
-  }
+	item.path[depth] = newName;
+	item.pathStr = JSON.stringify(item.path);
+	if (item.isGroup) {
+		renameRecursive(item, newName, depth);
+	}
 
-  selectedValue.value = item.pathStr;
-  const parentItems = selectedItem.value?.parentItems;
-  if (parentItems) {
-    parentItems.sort(
-      (a, b) =>
-        Number(b.isGroup) - Number(a.isGroup) ||
-        a.path[depth].localeCompare(b.path[depth], undefined, {
-          numeric: true,
-        })
-    );
-  }
+	selectedValue.value = item.pathStr;
+	const parentItems = selectedItem.value?.parentItems;
+	if (parentItems) {
+		parentItems.sort(
+			(a, b) =>
+				Number(b.isGroup) - Number(a.isGroup) ||
+				a.path[depth].localeCompare(b.path[depth], undefined, {
+					numeric: true,
+				}),
+		);
+	}
 
-  if (isUserAction) {
-    // save and broadcast
-    if (isNewItem) {
-      // add
-      if (!item.isGroup) {
-        // item
-        errorOccured.value ||= !(await Db.addItem(
-          props.storeName,
-          itemToDbItem(item)
-        ));
-        channel.postMessage({
-          type: "addItem",
-          path: [...item.path],
-          value: clone(item.value),
-        } as AddItemMessage);
-      } else {
-        // group
-        errorOccured.value ||= !(await Db.addGroup(
-          props.storeName,
-          groupToDbGroup(item)
-        ));
-        channel.postMessage({
-          type: "addGroup",
-          path: [...item.path],
-        } as AddGroupMessage);
-      }
-    } else {
-      // rename
-      errorOccured.value ||= !(await Db.renameItem(
-        props.storeName,
-        toDbItemOrGroup({ ...item, path: prevPath }),
-        newName
-      ));
-      channel.postMessage({
-        type: "renameItem",
-        path: prevPath,
-        newName: newName,
-      } as RenameItemMessage);
-    }
+	if (isUserAction) {
+		// save and broadcast
+		if (isNewItem) {
+			// add
+			if (!item.isGroup) {
+				// item
+				errorOccured.value ||= !(await Db.addItem(
+					props.storeName,
+					itemToDbItem(item),
+				));
+				channel.postMessage({
+					type: "addItem",
+					path: [...item.path],
+					value: clone(item.value),
+				} as AddItemMessage);
+			} else {
+				// group
+				errorOccured.value ||= !(await Db.addGroup(
+					props.storeName,
+					groupToDbGroup(item),
+				));
+				channel.postMessage({
+					type: "addGroup",
+					path: [...item.path],
+				} as AddGroupMessage);
+			}
+		} else {
+			// rename
+			errorOccured.value ||= !(await Db.renameItem(
+				props.storeName,
+				toDbItemOrGroup({ ...item, path: prevPath }),
+				newName,
+			));
+			channel.postMessage({
+				type: "renameItem",
+				path: prevPath,
+				newName: newName,
+			} as RenameItemMessage);
+		}
 
-    // give focus
-    await nextTick();
-    const name = `item-picker-${props.storeName}-${props.index}`;
-    const checked = document.querySelector(`input[name="${name}"]:checked`);
-    if (checked) {
-      (checked as HTMLInputElement).focus();
-    }
-  } else {
-    selectedValue.value = false;
-  }
+		// give focus
+		await nextTick();
+		const name = `item-picker-${props.storeName}-${props.index}`;
+		const checked = document.querySelector(`input[name="${name}"]:checked`);
+		if (checked) {
+			(checked as HTMLInputElement).focus();
+		}
+	} else {
+		selectedValue.value = false;
+	}
 };
 
 const renameRecursive = (group: Group, newName: string, depth: number) => {
-  for (const item of group.items) {
-    item.path[depth] = newName;
-    item.pathStr = JSON.stringify(item.path);
-    if (item.isGroup) {
-      renameRecursive(item, newName, depth);
-    }
-  }
+	for (const item of group.items) {
+		item.path[depth] = newName;
+		item.pathStr = JSON.stringify(item.path);
+		if (item.isGroup) {
+			renameRecursive(item, newName, depth);
+		}
+	}
 };
 
 const cancelRename = async (item: Item | Group) => {
-  item.isEditing = false;
-  isEditing.value = false;
-  editingName.value = "";
-  if (item.path[item.path.length - 1] === "") {
-    selectedValue.value = item.pathStr;
-    await deleteItem(false);
-  }
+	item.isEditing = false;
+	isEditing.value = false;
+	editingName.value = "";
+	if (item.path[item.path.length - 1] === "") {
+		selectedValue.value = item.pathStr;
+		await deleteItem(false);
+	}
 };
 
 const addGroup = async (name?: string) => {
-  if (errorOccured.value) return;
+	if (errorOccured.value) return;
 
-  const path = selectedItem.value
-    ? selectedItem.value.item.isGroup
-      ? [...selectedItem.value.item.path, name ?? ""]
-      : [...selectedItem.value.item.path.slice(0, -1), name ?? ""]
-    : [name ?? ""];
-  if (path.length > 3) return;
-  const pathStr = JSON.stringify(path);
-  const parentItems = selectedItem.value
-    ? selectedItem.value.item.isGroup
-      ? selectedItem.value.item.items
-      : selectedItem.value.parentItems
-    : data.value;
-  parentItems.push({
-    isGroup: true,
-    path,
-    pathStr,
-    opened: false,
-    isEditing: false,
-    items: [],
-  });
+	const path = selectedItem.value
+		? selectedItem.value.item.isGroup
+			? [...selectedItem.value.item.path, name ?? ""]
+			: [...selectedItem.value.item.path.slice(0, -1), name ?? ""]
+		: [name ?? ""];
+	if (path.length > 3) return;
+	const pathStr = JSON.stringify(path);
+	const parentItems = selectedItem.value
+		? selectedItem.value.item.isGroup
+			? selectedItem.value.item.items
+			: selectedItem.value.parentItems
+		: data.value;
+	parentItems.push({
+		isGroup: true,
+		path,
+		pathStr,
+		opened: false,
+		isEditing: false,
+		items: [],
+	});
 
-  if (name === undefined) {
-    // user must enter a name
-    if (selectedItem.value?.item?.isGroup) {
-      selectedItem.value.item.opened = true;
-    }
-    selectedValue.value = pathStr;
-    renameItem();
-  } else {
-    // name is provided
-    selectedValue.value = false;
-    const depth = path.length - 1;
-    parentItems.sort(
-      (a, b) =>
-        Number(b.isGroup) - Number(a.isGroup) ||
-        a.path[depth].localeCompare(b.path[depth], undefined, {
-          numeric: true,
-        })
-    );
-  }
+	if (name === undefined) {
+		// user must enter a name
+		if (selectedItem.value?.item?.isGroup) {
+			selectedItem.value.item.opened = true;
+		}
+		selectedValue.value = pathStr;
+		renameItem();
+	} else {
+		// name is provided
+		selectedValue.value = false;
+		const depth = path.length - 1;
+		parentItems.sort(
+			(a, b) =>
+				Number(b.isGroup) - Number(a.isGroup) ||
+				a.path[depth].localeCompare(b.path[depth], undefined, {
+					numeric: true,
+				}),
+		);
+	}
 };
 
 const deleteItem = async (isUserAction: boolean) => {
-  if (!selectedItem.value || errorOccured.value) return;
+	if (!selectedItem.value || errorOccured.value) return;
 
-  const path = [...selectedItem.value.item.path];
-  const dbItem = toDbItemOrGroup(selectedItem.value.item);
+	const path = [...selectedItem.value.item.path];
+	const dbItem = toDbItemOrGroup(selectedItem.value.item);
 
-  const parentItems = selectedItem.value.parentItems;
-  parentItems.splice(parentItems.indexOf(selectedItem.value.item), 1);
-  selectedValue.value = false;
+	const parentItems = selectedItem.value.parentItems;
+	parentItems.splice(parentItems.indexOf(selectedItem.value.item), 1);
+	selectedValue.value = false;
 
-  if (isUserAction) {
-    // save and broadcast
-    errorOccured.value ||= !(await Db.deleteItem(props.storeName, dbItem));
-    channel.postMessage({
-      type: "deleteItem",
-      path,
-    } as DeleteItemMessage);
-  }
+	if (isUserAction) {
+		// save and broadcast
+		errorOccured.value ||= !(await Db.deleteItem(props.storeName, dbItem));
+		channel.postMessage({
+			type: "deleteItem",
+			path,
+		} as DeleteItemMessage);
+	}
 };
 
 const importError = ref("");
 
 type JsonItem = {
-  path: string[];
-  isGroup: boolean;
-  value?: unknown;
+	path: string[];
+	isGroup: boolean;
+	value?: unknown;
 };
 
 const checkJson = (array: JsonItem[]) => {
-  if (!Array.isArray(array)) return false;
+	if (!Array.isArray(array)) return false;
 
-  let valueType = "";
-  if (props.storeName === "ranges") valueType = "string";
-  if (props.storeName === "configurations") valueType = "object";
-  if (valueType === "") return false;
+	let valueType = "";
+	if (props.storeName === "ranges") valueType = "string";
+	if (props.storeName === "configurations") valueType = "object";
+	if (valueType === "") return false;
 
-  const map = new Map<string, boolean>();
-  map.set(JSON.stringify([]), true);
+	const map = new Map<string, boolean>();
+	map.set(JSON.stringify([]), true);
 
-  for (const item of array) {
-    if (
-      typeof item.isGroup !== "boolean" ||
-      !Array.isArray(item.path) ||
-      item.path.some((x) => typeof x !== "string") ||
-      item.path.length > (item.isGroup ? 3 : 4) ||
-      (!item.isGroup && typeof item.value !== valueType)
-    ) {
-      return false;
-    }
+	for (const item of array) {
+		if (
+			typeof item.isGroup !== "boolean" ||
+			!Array.isArray(item.path) ||
+			item.path.some((x) => typeof x !== "string") ||
+			item.path.length > (item.isGroup ? 3 : 4) ||
+			(!item.isGroup && typeof item.value !== valueType)
+		) {
+			return false;
+		}
 
-    item.path = item.path.map((x) => x.trim());
+		item.path = item.path.map((x) => x.trim());
 
-    if (
-      item.path.some((x) => x === "") ||
-      !map.get(JSON.stringify(item.path.slice(0, -1))) ||
-      map.has(JSON.stringify(item.path))
-    ) {
-      return false;
-    }
+		if (
+			item.path.some((x) => x === "") ||
+			!map.get(JSON.stringify(item.path.slice(0, -1))) ||
+			map.has(JSON.stringify(item.path))
+		) {
+			return false;
+		}
 
-    map.set(JSON.stringify(item.path), item.isGroup);
-  }
+		map.set(JSON.stringify(item.path), item.isGroup);
+	}
 
-  return true;
+	return true;
 };
 
 const getItemsToAdd = async (array: JsonItem[]) => {
-  const masterData = await Db.getArray(props.storeName);
-  const masterMap = new Map<string, Db.DbItem | Db.DbGroup>();
-  for (const item of masterData) {
-    const path = [item.name0, item.name1, item.name2, item.name3, ""];
-    path.length = path.findIndex((x) => x === "");
-    masterMap.set(JSON.stringify(path), item);
-  }
+	const masterData = await Db.getArray(props.storeName);
+	const masterMap = new Map<string, Db.DbItem | Db.DbGroup>();
+	for (const item of masterData) {
+		const path = [item.name0, item.name1, item.name2, item.name3, ""];
+		path.length = path.findIndex((x) => x === "");
+		masterMap.set(JSON.stringify(path), item);
+	}
 
-  const ret: (Db.DbItem | Db.DbGroup)[] = [];
+	const ret: (Db.DbItem | Db.DbGroup)[] = [];
 
-  for (const item of array) {
-    const depth = item.path.length;
-    const name = item.path[depth - 1];
-    let pathStr = JSON.stringify(item.path);
+	for (const item of array) {
+		const depth = item.path.length;
+		const name = item.path[depth - 1];
+		let pathStr = JSON.stringify(item.path);
 
-    if (item.isGroup) {
-      const master = masterMap.get(pathStr);
-      if (master && master.isGroup === 0) return name;
-      if (!master) {
-        ret.push({
-          name0: item.path[0],
-          name1: item.path[1] ?? "",
-          name2: item.path[2] ?? "",
-          name3: item.path[3] ?? "",
-          isGroup: 1,
-        });
-      }
-    } else {
-      let i = 2;
-      let master = masterMap.get(pathStr);
-      while (
-        master &&
-        (master.isGroup === 1 || !isEqual(master.value, item.value))
-      ) {
-        item.path[depth - 1] = `${name} (${i++})`;
-        pathStr = JSON.stringify(item.path);
-        master = masterMap.get(pathStr);
-      }
-      if (!master) {
-        ret.push({
-          name0: item.path[0],
-          name1: item.path[1] ?? "",
-          name2: item.path[2] ?? "",
-          name3: item.path[3] ?? "",
-          isGroup: 0,
-          value: item.value,
-        });
-      }
-    }
-  }
+		if (item.isGroup) {
+			const master = masterMap.get(pathStr);
+			if (master && master.isGroup === 0) return name;
+			if (!master) {
+				ret.push({
+					name0: item.path[0],
+					name1: item.path[1] ?? "",
+					name2: item.path[2] ?? "",
+					name3: item.path[3] ?? "",
+					isGroup: 1,
+				});
+			}
+		} else {
+			let i = 2;
+			let master = masterMap.get(pathStr);
+			while (
+				master &&
+				(master.isGroup === 1 || !isEqual(master.value, item.value))
+			) {
+				item.path[depth - 1] = `${name} (${i++})`;
+				pathStr = JSON.stringify(item.path);
+				master = masterMap.get(pathStr);
+			}
+			if (!master) {
+				ret.push({
+					name0: item.path[0],
+					name1: item.path[1] ?? "",
+					name2: item.path[2] ?? "",
+					name3: item.path[3] ?? "",
+					isGroup: 0,
+					value: item.value,
+				});
+			}
+		}
+	}
 
-  return ret;
+	return ret;
 };
 
 const importJson = async () => {
-  if (errorOccured.value || isEditing.value) return;
+	if (errorOccured.value || isEditing.value) return;
 
-  let filePath = await open({
-    defaultPath: `${props.storeName}.json`,
-    filters: [{ name: "JSON Files", extensions: ["json"] }],
-  });
+	let filePath = await open({
+		defaultPath: `${props.storeName}.json`,
+		filters: [{ name: "JSON Files", extensions: ["json"] }],
+	});
 
-  if (!filePath) return;
-  if (Array.isArray(filePath)) filePath = filePath[0];
+	if (!filePath) return;
+	if (Array.isArray(filePath)) filePath = filePath[0];
 
-  importError.value = "";
+	importError.value = "";
 
-  const text = await readTextFile(filePath as string);
-  let obj: { version: number; name: string; data: JsonItem[] };
-  try {
-    obj = JSON.parse(text);
-  } catch (e) {
-    importError.value = "Parse error (invalid JSON)";
-    return;
-  }
+	const text = await readTextFile(filePath as string);
+	let obj: { version: number; name: string; data: JsonItem[] };
+	try {
+		obj = JSON.parse(text);
+	} catch (e) {
+		importError.value = "Parse error (invalid JSON)";
+		return;
+	}
 
-  if (obj.version !== 2) {
-    importError.value = "Version mismatch";
-    return;
-  }
+	if (obj.version !== 2) {
+		importError.value = "Version mismatch";
+		return;
+	}
 
-  if (obj.name !== props.storeName) {
-    importError.value = "Data type mismatch";
-    return;
-  }
+	if (obj.name !== props.storeName) {
+		importError.value = "Data type mismatch";
+		return;
+	}
 
-  if (!checkJson(obj.data)) {
-    importError.value = "Invalid data";
-    return;
-  }
+	if (!checkJson(obj.data)) {
+		importError.value = "Invalid data";
+		return;
+	}
 
-  const itemsToAdd = await getItemsToAdd(obj.data);
-  if (typeof itemsToAdd === "string") {
-    importError.value = `Cannot create group "${itemsToAdd}" because the item already exists`;
-    return;
-  }
+	const itemsToAdd = await getItemsToAdd(obj.data);
+	if (typeof itemsToAdd === "string") {
+		importError.value = `Cannot create group "${itemsToAdd}" because the item already exists`;
+		return;
+	}
 
-  errorOccured.value ||= !(await Db.bulkAdd(props.storeName, itemsToAdd));
-  channel.postMessage({ type: "importJson" });
-  await loadData();
+	errorOccured.value ||= !(await Db.bulkAdd(props.storeName, itemsToAdd));
+	channel.postMessage({ type: "importJson" });
+	await loadData();
 };
 
 const appendRecursive = (item: Item | Group, array: JsonItem[]) => {
-  array.push({
-    path: item.path,
-    isGroup: item.isGroup,
-    value: item.isGroup ? undefined : item.value,
-  });
-  if (item.isGroup) {
-    for (const child of item.items) {
-      appendRecursive(child, array);
-    }
-  }
+	array.push({
+		path: item.path,
+		isGroup: item.isGroup,
+		value: item.isGroup ? undefined : item.value,
+	});
+	if (item.isGroup) {
+		for (const child of item.items) {
+			appendRecursive(child, array);
+		}
+	}
 };
 
 const exportJson = async () => {
-  if (errorOccured.value || isEditing.value) return;
+	if (errorOccured.value || isEditing.value) return;
 
-  const array: JsonItem[] = [];
-  for (const item of data.value) {
-    appendRecursive(item, array);
-  }
+	const array: JsonItem[] = [];
+	for (const item of data.value) {
+		appendRecursive(item, array);
+	}
 
-  const obj = { version: 2, name: props.storeName, data: array };
-  const jsonStr = JSON.stringify(obj, undefined, 2);
+	const obj = { version: 2, name: props.storeName, data: array };
+	const jsonStr = JSON.stringify(obj, undefined, 2);
 
-  const filePath = await save({
-    defaultPath: `${props.storeName}.json`,
-    filters: [{ name: "JSON Files", extensions: ["json"] }],
-  });
+	const filePath = await save({
+		defaultPath: `${props.storeName}.json`,
+		filters: [{ name: "JSON Files", extensions: ["json"] }],
+	});
 
-  if (filePath) {
-    await writeTextFile(filePath, jsonStr);
-  }
+	if (filePath) {
+		await writeTextFile(filePath, jsonStr);
+	}
 };
 </script>
 

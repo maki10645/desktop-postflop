@@ -136,27 +136,27 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useStore } from "../store";
 import * as invokes from "../invokes";
+import { useStore } from "../store";
 
-import {
-  Results,
-  ChanceReports,
-  Spot,
-  SpotChance,
-  SpotPlayer,
-  DisplayMode,
-  DisplayOptions,
-  HoverContent,
+import type {
+	ChanceReports,
+	DisplayMode,
+	DisplayOptions,
+	HoverContent,
+	Results,
+	Spot,
+	SpotChance,
+	SpotPlayer,
 } from "../result-types";
 
-import ResultNav from "./ResultNav.vue";
-import ResultMiddle from "./ResultMiddle.vue";
 import ResultBasics from "./ResultBasics.vue";
-import ResultTable from "./ResultTable.vue";
+import ResultChance from "./ResultChance.vue";
 import ResultCompare from "./ResultCompare.vue";
 import ResultGraphs from "./ResultGraphs.vue";
-import ResultChance from "./ResultChance.vue";
+import ResultMiddle from "./ResultMiddle.vue";
+import ResultNav from "./ResultNav.vue";
+import ResultTable from "./ResultTable.vue";
 
 const store = useStore();
 
@@ -177,46 +177,46 @@ const totalBetAmount = ref([0, 0]);
 
 const isSolverFinished = ref(false);
 store.$subscribe(async (_, store) => {
-  if (isSolverFinished.value !== store.isSolverFinished) {
-    if ((isSolverFinished.value = store.isSolverFinished)) {
-      await init();
-    } else {
-      clear();
-    }
-  }
+	if (isSolverFinished.value !== store.isSolverFinished) {
+		if ((isSolverFinished.value = store.isSolverFinished)) {
+			await init();
+		} else {
+			clear();
+		}
+	}
 });
 
 const init = async () => {
-  cards.value = await invokes.gamePrivateCards();
-  isHandlerUpdated.value = true;
+	cards.value = await invokes.gamePrivateCards();
+	isHandlerUpdated.value = true;
 };
 
 const clear = () => {
-  cards.value = [[], []];
-  selectedSpot.value = null;
-  selectedChance.value = null;
-  results.value = null;
-  chanceReports.value = null;
+	cards.value = [[], []];
+	selectedSpot.value = null;
+	selectedChance.value = null;
+	results.value = null;
+	chanceReports.value = null;
 };
 
 const onUpdateSpot = (
-  newSelectedSpot: Spot | null,
-  newSelectedChance: SpotChance | null,
-  newCurrentBoard: number[],
-  newResults: Results,
-  newChanceReports: ChanceReports | null,
-  newTotalBetAmount: number[]
+	newSelectedSpot: Spot | null,
+	newSelectedChance: SpotChance | null,
+	newCurrentBoard: number[],
+	newResults: Results,
+	newChanceReports: ChanceReports | null,
+	newTotalBetAmount: number[],
 ) => {
-  dealtCard.value = -1;
-  selectedSpot.value = newSelectedSpot;
-  selectedChance.value = newSelectedChance;
-  currentBoard.value = newCurrentBoard;
-  results.value = newResults;
-  chanceReports.value = newChanceReports;
-  totalBetAmount.value = newTotalBetAmount;
-  isLocked.value = false;
+	dealtCard.value = -1;
+	selectedSpot.value = newSelectedSpot;
+	selectedChance.value = newSelectedChance;
+	currentBoard.value = newCurrentBoard;
+	results.value = newResults;
+	chanceReports.value = newChanceReports;
+	totalBetAmount.value = newTotalBetAmount;
+	isLocked.value = false;
 
-  chanceMode.value = newSelectedChance?.player ?? "";
+	chanceMode.value = newSelectedChance?.player ?? "";
 };
 
 /* Middle Bar */
@@ -225,80 +225,77 @@ const displayMode = ref<DisplayMode>("basics");
 const chanceMode = ref("");
 
 const displayOptions = ref<DisplayOptions>({
-  playerBasics: "auto",
-  playerChance: "auto",
-  barHeight: "normalized",
-  suit: "grouped",
-  strategy: "show",
-  contentBasics: "default",
-  contentGraphs: "eq",
-  chartChance: "strategy-combos",
+	playerBasics: "auto",
+	playerChance: "auto",
+	barHeight: "normalized",
+	suit: "grouped",
+	strategy: "show",
+	contentBasics: "default",
+	contentGraphs: "eq",
+	chartChance: "strategy-combos",
 });
 
 const copySuccess = ref(0);
 
 const updateDisplayMode = (mode: DisplayMode) => {
-  displayMode.value = mode;
+	displayMode.value = mode;
 };
 
 const updateDisplayOptions = (options: DisplayOptions) => {
-  displayOptions.value = options;
+	displayOptions.value = options;
 };
 
 const copyRangeTextToClipboard = async () => {
-  const text = "Hello World";
-  navigator.clipboard
-    .writeText(text)
-    .then(() => (copySuccess.value = 1))
-    .catch(() => (copySuccess.value = -1));
+	const text = "Hello World";
+	navigator.clipboard
+		.writeText(text)
+		.then(() => (copySuccess.value = 1))
+		.catch(() => (copySuccess.value = -1));
 };
 
 const resetCopySuccess = () => {
-  copySuccess.value = 0;
+	copySuccess.value = 0;
 };
 
 /* Computed */
 
 const autoPlayerBasics = computed(() => {
-  const spot = selectedSpot.value;
-  const chance = selectedChance.value;
-  if (!spot) return "oop";
+	const spot = selectedSpot.value;
+	const chance = selectedChance.value;
+	if (!spot) return "oop";
 
-  if (chance) {
-    return chance.prevPlayer;
-  } else if (spot.type === "terminal") {
-    return spot.prevPlayer;
-  } else {
-    return (spot as SpotPlayer).player;
-  }
+	if (chance) {
+		return chance.prevPlayer;
+	}
+	if (spot.type === "terminal") {
+		return spot.prevPlayer;
+	}
+	return (spot as SpotPlayer).player;
 });
 
 const autoPlayerChance = computed(() => {
-  const spot = selectedSpot.value;
-  if (!spot) return "oop";
-  if (spot.type === "terminal") {
-    return spot.prevPlayer;
-  } else {
-    return (spot as SpotPlayer).player;
-  }
+	const spot = selectedSpot.value;
+	if (!spot) return "oop";
+	if (spot.type === "terminal") {
+		return spot.prevPlayer;
+	}
+	return (spot as SpotPlayer).player;
 });
 
 const displayPlayerBasics = computed(() => {
-  const optionPlayer = displayOptions.value.playerBasics;
-  if (optionPlayer === "auto") {
-    return autoPlayerBasics.value;
-  } else {
-    return optionPlayer;
-  }
+	const optionPlayer = displayOptions.value.playerBasics;
+	if (optionPlayer === "auto") {
+		return autoPlayerBasics.value;
+	}
+	return optionPlayer;
 });
 
 const displayPlayerChance = computed(() => {
-  const optionPlayer = displayOptions.value.playerChance;
-  if (optionPlayer === "auto") {
-    return autoPlayerChance.value;
-  } else {
-    return optionPlayer;
-  }
+	const optionPlayer = displayOptions.value.playerChance;
+	if (optionPlayer === "auto") {
+		return autoPlayerChance.value;
+	}
+	return optionPlayer;
 });
 
 /* Results */
@@ -306,10 +303,10 @@ const displayPlayerChance = computed(() => {
 const basicsHoverContent = ref<HoverContent | null>(null);
 
 const onUpdateHoverContent = (content: HoverContent | null) => {
-  basicsHoverContent.value = content;
+	basicsHoverContent.value = content;
 };
 
 const onDealCard = (card: number) => {
-  dealtCard.value = card;
+	dealtCard.value = card;
 };
 </script>

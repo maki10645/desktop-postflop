@@ -51,43 +51,43 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { ranks, suits, cardId, toFixed1, toFixedAdaptive } from "../utils";
-import {
-  ChanceReports,
-  Spot,
-  SpotChance,
-  SpotPlayer,
-  DisplayOptions,
+import type {
+	ChanceReports,
+	DisplayOptions,
+	Spot,
+	SpotChance,
+	SpotPlayer,
 } from "../result-types";
+import { cardId, ranks, suits, toFixed1, toFixedAdaptive } from "../utils";
 
 import {
-  Chart,
-  ChartData,
-  ChartOptions,
-  BarController,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Title,
-  Tooltip,
+	BarController,
+	BarElement,
+	CategoryScale,
+	Chart,
+	type ChartData,
+	type ChartOptions,
+	LinearScale,
+	Title,
+	Tooltip,
 } from "chart.js";
 
+import { Bar } from "vue-chartjs";
 import BoardSelectorCard from "./BoardSelectorCard.vue";
 import ResultTable from "./ResultTable.vue";
-import { Bar } from "vue-chartjs";
 
 Chart.register(
-  BarController,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Title,
-  Tooltip
+	BarController,
+	BarElement,
+	CategoryScale,
+	LinearScale,
+	Title,
+	Tooltip,
 );
 
 Chart.defaults.font.size = 14;
 Chart.defaults.font.family =
-  "system-ui, 'Noto Sans', 'Open Sans', Roboto, sans-serif";
+	"system-ui, 'Noto Sans', 'Open Sans', Roboto, sans-serif";
 
 const labels = [...ranks].reverse();
 
@@ -98,168 +98,164 @@ const black = "#000000";
 const suitColor = [green600, blue600, pink600, black];
 
 const props = defineProps<{
-  selectedSpot: Spot;
-  selectedChance: SpotChance;
-  chanceReports: ChanceReports | null;
-  displayOptions: DisplayOptions;
-  displayPlayer: "oop" | "ip";
+	selectedSpot: Spot;
+	selectedChance: SpotChance;
+	chanceReports: ChanceReports | null;
+	displayOptions: DisplayOptions;
+	displayPlayer: "oop" | "ip";
 }>();
 
-const emit = defineEmits<{
-  (event: "deal-card", card: number): void;
-}>();
+const emit = defineEmits<(event: "deal-card", card: number) => void>();
 
 const chartParentDiv = ref<HTMLDivElement | null>(null);
 const chartParentDivHeight = ref(0);
 
 const assignChartParentDivHeight = () => {
-  if (chartParentDiv.value) {
-    chartParentDivHeight.value = chartParentDiv.value.clientHeight;
-  }
+	if (chartParentDiv.value) {
+		chartParentDivHeight.value = chartParentDiv.value.clientHeight;
+	}
 };
 
 watch(chartParentDiv, assignChartParentDivHeight);
 window.addEventListener("resize", assignChartParentDivHeight);
 
 const chartData = computed((): ChartData<"bar", number[]> | null => {
-  const reports = props.chanceReports;
-  if (!reports) return null;
+	const reports = props.chanceReports;
+	if (!reports) return null;
 
-  const options = props.displayOptions;
-  const playerIndex = props.displayPlayer === "oop" ? 0 : 1;
+	const options = props.displayOptions;
+	const playerIndex = props.displayPlayer === "oop" ? 0 : 1;
 
-  let datasets: ChartData<"bar", number[]>["datasets"];
-  const stacks = ["clubs", "diamonds", "hearts", "spades"];
-  const defaultData = { barPercentage: 0.85, categoryPercentage: 0.75 };
+	let datasets: ChartData<"bar", number[]>["datasets"];
+	const stacks = ["clubs", "diamonds", "hearts", "spades"];
+	const defaultData = { barPercentage: 0.85, categoryPercentage: 0.75 };
 
-  if (
-    options.chartChance === "strategy-combos" ||
-    options.chartChance === "strategy"
-  ) {
-    const isCombos = options.chartChance === "strategy-combos";
-    if (reports.currentPlayer === props.displayPlayer) {
-      const spot = props.selectedSpot as SpotPlayer;
-      datasets = Array.from({ length: reports.numActions * 4 }, (_, i) => {
-        const actionIndex = i >> 2;
-        const suit = i & 3;
-        const action = spot.actions[actionIndex];
-        let label = action.name;
-        if (action.amount !== "0") label += ` ${action.amount}`;
-        return {
-          data: Array.from({ length: 13 }, (_, rank) => {
-            const card = cardId(rank, suit);
-            if (reports.status[card] === 0) return 0;
-            const coef = isCombos ? reports.combos[playerIndex][card] : 1;
-            return coef * reports.strategy[actionIndex * 52 + card];
-          }).reverse(),
-          label,
-          backgroundColor: action.color,
-          stack: stacks[suit],
-          ...defaultData,
-        };
-      }).reverse();
-    } else {
-      datasets = Array.from({ length: 4 }, (_, suit) => ({
-        data: Array.from({ length: 13 }, (_, rank) => {
-          const card = cardId(rank, suit);
-          if (reports.status[card] === 0) return 0;
-          return isCombos ? reports.combos[playerIndex][card] : 1;
-        }).reverse(),
-        backgroundColor: suitColor[suit],
-        stack: stacks[suit],
-        ...defaultData,
-      })).reverse();
-    }
-  } else {
-    const data =
-      options.chartChance === "eq"
-        ? reports.equity[playerIndex]
-        : options.chartChance === "ev"
-        ? reports.ev[playerIndex]
-        : reports.eqr[playerIndex];
-    datasets = Array.from({ length: 4 }, (_, suit) => ({
-      data: Array.from(
-        { length: 13 },
-        (_, rank) => data[4 * rank + suit]
-      ).reverse(),
-      backgroundColor: suitColor[suit],
-      stack: stacks[suit],
-      ...defaultData,
-    })).reverse();
-  }
+	if (
+		options.chartChance === "strategy-combos" ||
+		options.chartChance === "strategy"
+	) {
+		const isCombos = options.chartChance === "strategy-combos";
+		if (reports.currentPlayer === props.displayPlayer) {
+			const spot = props.selectedSpot as SpotPlayer;
+			datasets = Array.from({ length: reports.numActions * 4 }, (_, i) => {
+				const actionIndex = i >> 2;
+				const suit = i & 3;
+				const action = spot.actions[actionIndex];
+				let label = action.name;
+				if (action.amount !== "0") label += ` ${action.amount}`;
+				return {
+					data: Array.from({ length: 13 }, (_, rank) => {
+						const card = cardId(rank, suit);
+						if (reports.status[card] === 0) return 0;
+						const coef = isCombos ? reports.combos[playerIndex][card] : 1;
+						return coef * reports.strategy[actionIndex * 52 + card];
+					}).reverse(),
+					label,
+					backgroundColor: action.color,
+					stack: stacks[suit],
+					...defaultData,
+				};
+			}).reverse();
+		} else {
+			datasets = Array.from({ length: 4 }, (_, suit) => ({
+				data: Array.from({ length: 13 }, (_, rank) => {
+					const card = cardId(rank, suit);
+					if (reports.status[card] === 0) return 0;
+					return isCombos ? reports.combos[playerIndex][card] : 1;
+				}).reverse(),
+				backgroundColor: suitColor[suit],
+				stack: stacks[suit],
+				...defaultData,
+			})).reverse();
+		}
+	} else {
+		const data =
+			options.chartChance === "eq"
+				? reports.equity[playerIndex]
+				: options.chartChance === "ev"
+					? reports.ev[playerIndex]
+					: reports.eqr[playerIndex];
+		datasets = Array.from({ length: 4 }, (_, suit) => ({
+			data: Array.from(
+				{ length: 13 },
+				(_, rank) => data[4 * rank + suit],
+			).reverse(),
+			backgroundColor: suitColor[suit],
+			stack: stacks[suit],
+			...defaultData,
+		})).reverse();
+	}
 
-  return { labels, datasets };
+	return { labels, datasets };
 });
 
 const chartOptions = computed((): ChartOptions<"bar"> => {
-  const option = props.displayOptions.chartChance;
-  const style = ["strategy", "eq", "eqr"].includes(option)
-    ? "percent"
-    : "decimal";
-  const format = { style, useGrouping: false, minimumFractionDigits: 0 };
+	const option = props.displayOptions.chartChance;
+	const style = ["strategy", "eq", "eqr"].includes(option)
+		? "percent"
+		: "decimal";
+	const format = { style, useGrouping: false, minimumFractionDigits: 0 };
 
-  const titleText =
-    props.displayPlayer.toUpperCase() +
-    " " +
-    {
-      "strategy-combos": "Strategy (Combos)",
-      strategy: "Strategy",
-      eq: "Equity",
-      ev: "EV",
-      eqr: "EQR",
-    }[option];
+	const titleText = `${props.displayPlayer.toUpperCase()} ${
+		{
+			"strategy-combos": "Strategy (Combos)",
+			strategy: "Strategy",
+			eq: "Equity",
+			ev: "EV",
+			eqr: "EQR",
+		}[option]
+	}`;
 
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    normalized: true,
-    scales: {
-      y: {
-        stacked: true,
-        min: ["ev", "eqr"].includes(option) ? undefined : 0,
-        max: option === "strategy" ? 1 : undefined,
-        //ticks: { format },
-        afterFit(axis) {
-          axis.width = 52;
-        },
-      },
-    },
-    plugins: {
-      title: {
-        display: true,
-        text: titleText,
-        font: { size: 16, weight: "normal" },
-        color: "rgba(0, 0, 0, 0.9)",
-      },
-      legend: {
-        display: false,
-      },
-      tooltip: {
-        titleMarginBottom: 4,
-        callbacks: {
-          title(context) {
-            const rank = 12 - context[0].dataIndex;
-            const suit = 3 - (context[0].datasetIndex & 3);
-            return ranks[rank] + suits[suit];
-          },
-          label(context) {
-            const value = context.parsed.y;
-            let label = context.dataset.label ?? "";
-            if (label) label += ": ";
-            if (["strategy-combos", "ev"].includes(option)) {
-              return ` ${label}${toFixedAdaptive(value)}`;
-            } else {
-              return ` ${label}${toFixed1(value * 100)}%`;
-            }
-          },
-        },
-      },
-    },
-  };
+	return {
+		responsive: true,
+		maintainAspectRatio: false,
+		animation: false,
+		normalized: true,
+		scales: {
+			y: {
+				stacked: true,
+				min: ["ev", "eqr"].includes(option) ? undefined : 0,
+				max: option === "strategy" ? 1 : undefined,
+				//ticks: { format },
+				afterFit(axis) {
+					axis.width = 52;
+				},
+			},
+		},
+		plugins: {
+			title: {
+				display: true,
+				text: titleText,
+				font: { size: 16, weight: "normal" },
+				color: "rgba(0, 0, 0, 0.9)",
+			},
+			legend: {
+				display: false,
+			},
+			tooltip: {
+				titleMarginBottom: 4,
+				callbacks: {
+					title(context) {
+						const rank = 12 - context[0].dataIndex;
+						const suit = 3 - (context[0].datasetIndex & 3);
+						return ranks[rank] + suits[suit];
+					},
+					label(context) {
+						const value = context.parsed.y;
+						let label = context.dataset.label ?? "";
+						if (label) label += ": ";
+						if (["strategy-combos", "ev"].includes(option)) {
+							return ` ${label}${toFixedAdaptive(value)}`;
+						}
+						return ` ${label}${toFixed1(value * 100)}%`;
+					},
+				},
+			},
+		},
+	};
 });
 
 const deal = (card: number) => {
-  emit("deal-card", card);
+	emit("deal-card", card);
 };
 </script>

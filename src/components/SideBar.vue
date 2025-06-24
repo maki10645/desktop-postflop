@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { SideView, useStore, useConfigStore } from "../store";
+import { type SideView, useConfigStore, useStore } from "../store";
 import { cardText } from "../utils";
 
 import RangeMiniViewer from "./RangeMiniViewer.vue";
@@ -74,17 +74,14 @@ const store = useStore();
 const config = useConfigStore();
 
 const itemStyle = (view: SideView) => {
-  return (
-    "side-bar-item " + (view === store.sideView ? "font-bold bg-blue-100" : "")
-  );
+	return `side-bar-item ${view === store.sideView ? "font-bold bg-blue-100" : ""}`;
 };
 
 const boardTexts = computed(() => {
-  if (config.board.length === 0) {
-    return [{ rank: "-", suit: "", colorClass: "text-black" }];
-  } else {
-    return config.board.map(cardText);
-  }
+	if (config.board.length === 0) {
+		return [{ rank: "-", suit: "", colorClass: "text-black" }];
+	}
+	return config.board.map(cardText);
 });
 </script>
 

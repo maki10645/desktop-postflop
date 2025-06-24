@@ -834,49 +834,49 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useStore, useConfigStore } from "../store";
+import { useConfigStore, useStore } from "../store";
 import {
-  MAX_AMOUNT,
-  sanitizeBetString,
-  ROOT_LINE_STRING,
-  INVALID_LINE_STRING,
-  readableLineString,
+	INVALID_LINE_STRING,
+	MAX_AMOUNT,
+	ROOT_LINE_STRING,
+	readableLineString,
+	sanitizeBetString,
 } from "../utils";
 
+import { QuestionMarkCircleIcon } from "@heroicons/vue/20/solid";
+import { Tippy } from "vue-tippy";
 import DbItemPicker from "./DbItemPicker.vue";
 import TreeEditor from "./TreeEditor.vue";
-import { Tippy } from "vue-tippy";
-import { QuestionMarkCircleIcon } from "@heroicons/vue/20/solid";
 
 type ConfigValue = {
-  startingPot: number;
-  effectiveStack: number;
-  rakePercent: number;
-  rakeCap: number;
-  bubbleFactorOption: number;
-  oopBubbleFactor: number;
-  ipBubbleFactor: number;
-  donkOption: number;
-  oopFlopBet: string;
-  oopFlopRaise: string;
-  oopTurnBet: string;
-  oopTurnRaise: string;
-  oopTurnDonk: string;
-  oopRiverBet: string;
-  oopRiverRaise: string;
-  oopRiverDonk: string;
-  ipFlopBet: string;
-  ipFlopRaise: string;
-  ipTurnBet: string;
-  ipTurnRaise: string;
-  ipRiverBet: string;
-  ipRiverRaise: string;
-  addAllInThreshold: number;
-  forceAllInThreshold: number;
-  mergingThreshold: number;
-  expectedBoardLength: number;
-  addedLines: string;
-  removedLines: string;
+	startingPot: number;
+	effectiveStack: number;
+	rakePercent: number;
+	rakeCap: number;
+	bubbleFactorOption: number;
+	oopBubbleFactor: number;
+	ipBubbleFactor: number;
+	donkOption: number;
+	oopFlopBet: string;
+	oopFlopRaise: string;
+	oopTurnBet: string;
+	oopTurnRaise: string;
+	oopTurnDonk: string;
+	oopRiverBet: string;
+	oopRiverRaise: string;
+	oopRiverDonk: string;
+	ipFlopBet: string;
+	ipFlopRaise: string;
+	ipTurnBet: string;
+	ipTurnRaise: string;
+	ipRiverBet: string;
+	ipRiverRaise: string;
+	addAllInThreshold: number;
+	forceAllInThreshold: number;
+	mergingThreshold: number;
+	expectedBoardLength: number;
+	addedLines: string;
+	removedLines: string;
 };
 
 const store = useStore();
@@ -885,321 +885,321 @@ const config = useConfigStore();
 const isEditMode = ref(false);
 
 const hasEdit = computed(
-  () => config.addedLines.length > 0 || config.removedLines.length > 0
+	() => config.addedLines.length > 0 || config.removedLines.length > 0,
 );
 
 const addedLinesArray = computed(() =>
-  config.addedLines === ""
-    ? []
-    : config.addedLines.split(",").map(readableLineString)
+	config.addedLines === ""
+		? []
+		: config.addedLines.split(",").map(readableLineString),
 );
 
-const removedLinesArray = computed(() => 
-  config.removedLines === ""
-    ? []
-    : config.removedLines.split(",").map(readableLineString)
+const removedLinesArray = computed(() =>
+	config.removedLines === ""
+		? []
+		: config.removedLines.split(",").map(readableLineString),
 );
 
 const errorBubbleFactor = computed(() => {
-  const errors: string[] = [];
-  if ( config.oopBubbleFactor == 0.0 || config.ipBubbleFactor == 0.0 ) {
-    errors.push("Bubble Factor value must not be 0.0.");
-  }
-  if ( config.oopBubbleFactor >  100.0 || 
-       config.ipBubbleFactor  >  100.0 || 
-       config.oopBubbleFactor < -100.0 || 
-       config.ipBubbleFactor  < -100.0  )
-  {
-    errors.push("Bubble Factor values must be between -100 and 100.");
-  }
-  return errors;
+	const errors: string[] = [];
+	if (config.oopBubbleFactor === 0.0 || config.ipBubbleFactor === 0.0) {
+		errors.push("Bubble Factor value must not be 0.0.");
+	}
+	if (
+		config.oopBubbleFactor > 100.0 ||
+		config.ipBubbleFactor > 100.0 ||
+		config.oopBubbleFactor < -100.0 ||
+		config.ipBubbleFactor < -100.0
+	) {
+		errors.push("Bubble Factor values must be between -100 and 100.");
+	}
+	return errors;
 });
 
 const errorBasics = computed(() => {
-  const errors: string[] = [];
-  if (config.startingPot <= 0) {
-    errors.push("Starting pot must be positive");
-  }
-  if (config.startingPot > MAX_AMOUNT) {
-    errors.push(`Starting pot must not exceed ${MAX_AMOUNT}`);
-  }
-  if (config.startingPot % 1 !== 0) {
-    errors.push("Starting pot must be an integer");
-  }
-  if (config.effectiveStack <= 0) {
-    errors.push("Effective stack must be positive");
-  }
-  if (config.effectiveStack > MAX_AMOUNT) {
-    errors.push(`Effective stack must not exceed ${MAX_AMOUNT}`);
-  }
-  if (config.effectiveStack % 1 !== 0) {
-    errors.push("Effective stack must be an integer");
-  }
-  if (config.rakePercent < 0) {
-    errors.push("Rake must be non-negative");
-  }
-  if (config.rakePercent > 100) {
-    errors.push("Rake must not exceed 100%");
-  }
-  if (config.rakeCap < 0) {
-    errors.push("Rake cap must be non-negative");
-  }
-  if (config.rakeCap > 3 * MAX_AMOUNT) {
-    errors.push(`Rake cap must not exceed ${3 * MAX_AMOUNT}`);
-  }
-  return errors;
+	const errors: string[] = [];
+	if (config.startingPot <= 0) {
+		errors.push("Starting pot must be positive");
+	}
+	if (config.startingPot > MAX_AMOUNT) {
+		errors.push(`Starting pot must not exceed ${MAX_AMOUNT}`);
+	}
+	if (config.startingPot % 1 !== 0) {
+		errors.push("Starting pot must be an integer");
+	}
+	if (config.effectiveStack <= 0) {
+		errors.push("Effective stack must be positive");
+	}
+	if (config.effectiveStack > MAX_AMOUNT) {
+		errors.push(`Effective stack must not exceed ${MAX_AMOUNT}`);
+	}
+	if (config.effectiveStack % 1 !== 0) {
+		errors.push("Effective stack must be an integer");
+	}
+	if (config.rakePercent < 0) {
+		errors.push("Rake must be non-negative");
+	}
+	if (config.rakePercent > 100) {
+		errors.push("Rake must not exceed 100%");
+	}
+	if (config.rakeCap < 0) {
+		errors.push("Rake cap must be non-negative");
+	}
+	if (config.rakeCap > 3 * MAX_AMOUNT) {
+		errors.push(`Rake cap must not exceed ${3 * MAX_AMOUNT}`);
+	}
+	return errors;
 });
 
 const errorOop = computed(() => {
-  const errors: string[] = [];
-  const betConfig = [
-    { name: "OOP flop bet", res: config.oopFlopBetSanitized },
-    { name: "OOP flop raise", res: config.oopFlopRaiseSanitized },
-    { name: "OOP turn bet", res: config.oopTurnBetSanitized },
-    { name: "OOP turn raise", res: config.oopTurnRaiseSanitized },
-    { name: "OOP turn donk", res: config.oopTurnDonkSanitized, isDonk: true },
-    { name: "OOP river bet", res: config.oopRiverBetSanitized },
-    { name: "OOP river raise", res: config.oopRiverRaiseSanitized },
-    { name: "OOP river donk", res: config.oopRiverDonkSanitized, isDonk: true },
-  ];
-  for (const { name, res, isDonk } of betConfig) {
-    if (!res.valid && (!isDonk || config.donkOption)) {
-      errors.push(`${name}: ${res.s}`);
-    }
-  }
-  return errors;
+	const errors: string[] = [];
+	const betConfig = [
+		{ name: "OOP flop bet", res: config.oopFlopBetSanitized },
+		{ name: "OOP flop raise", res: config.oopFlopRaiseSanitized },
+		{ name: "OOP turn bet", res: config.oopTurnBetSanitized },
+		{ name: "OOP turn raise", res: config.oopTurnRaiseSanitized },
+		{ name: "OOP turn donk", res: config.oopTurnDonkSanitized, isDonk: true },
+		{ name: "OOP river bet", res: config.oopRiverBetSanitized },
+		{ name: "OOP river raise", res: config.oopRiverRaiseSanitized },
+		{ name: "OOP river donk", res: config.oopRiverDonkSanitized, isDonk: true },
+	];
+	for (const { name, res, isDonk } of betConfig) {
+		if (!res.valid && (!isDonk || config.donkOption)) {
+			errors.push(`${name}: ${res.s}`);
+		}
+	}
+	return errors;
 });
 
 const errorIp = computed(() => {
-  const errors: string[] = [];
-  const betConfig = [
-    { name: "IP flop bet", res: config.ipFlopBetSanitized },
-    { name: "IP flop raise", res: config.ipFlopRaiseSanitized },
-    { name: "IP turn bet", res: config.ipTurnBetSanitized },
-    { name: "IP turn raise", res: config.ipTurnRaiseSanitized },
-    { name: "IP river bet", res: config.ipRiverBetSanitized },
-    { name: "IP river raise", res: config.ipRiverRaiseSanitized },
-  ];
-  for (const { name, res } of betConfig) {
-    if (!res.valid) {
-      errors.push(`${name}: ${res.s}`);
-    }
-  }
-  return errors;
+	const errors: string[] = [];
+	const betConfig = [
+		{ name: "IP flop bet", res: config.ipFlopBetSanitized },
+		{ name: "IP flop raise", res: config.ipFlopRaiseSanitized },
+		{ name: "IP turn bet", res: config.ipTurnBetSanitized },
+		{ name: "IP turn raise", res: config.ipTurnRaiseSanitized },
+		{ name: "IP river bet", res: config.ipRiverBetSanitized },
+		{ name: "IP river raise", res: config.ipRiverRaiseSanitized },
+	];
+	for (const { name, res } of betConfig) {
+		if (!res.valid) {
+			errors.push(`${name}: ${res.s}`);
+		}
+	}
+	return errors;
 });
 
 const errorMisc = computed(() => {
-  const errors: string[] = [];
-  if (config.addAllInThreshold < 0) {
-    errors.push("Add all-in threshold must be non-negative");
-  }
-  if (config.forceAllInThreshold < 0) {
-    errors.push("Force all-in threshold must be non-negative");
-  }
-  if (config.mergingThreshold < 0) {
-    errors.push("Merging threshold must be non-negative");
-  }
-  return errors;
+	const errors: string[] = [];
+	if (config.addAllInThreshold < 0) {
+		errors.push("Add all-in threshold must be non-negative");
+	}
+	if (config.forceAllInThreshold < 0) {
+		errors.push("Force all-in threshold must be non-negative");
+	}
+	if (config.mergingThreshold < 0) {
+		errors.push("Merging threshold must be non-negative");
+	}
+	return errors;
 });
 
 const warningMisc = computed(() => {
-  const warnings: string[] = [];
-  if (config.forceAllInThreshold > 30) {
-    warnings.push(
-      "Force all-in threshold higher than 30% is not recommended.\nPlease see help to confirm the meaning."
-    );
-  }
-  return warnings;
+	const warnings: string[] = [];
+	if (config.forceAllInThreshold > 30) {
+		warnings.push(
+			"Force all-in threshold higher than 30% is not recommended.\nPlease see help to confirm the meaning.",
+		);
+	}
+	return warnings;
 });
 
 const errorLines = computed(() => {
-  const errors: string[] = [];
-  if (
-    addedLinesArray.value.includes(ROOT_LINE_STRING) ||
-    addedLinesArray.value.includes(INVALID_LINE_STRING) ||
-    removedLinesArray.value.includes(ROOT_LINE_STRING) ||
-    removedLinesArray.value.includes(INVALID_LINE_STRING)
-  ) {
-    errors.push("Invalid line found (loaded broken configurations?)");
-  }
-  if (
-    ![0, 3, 4, 5].includes(config.expectedBoardLength) ||
-    (config.expectedBoardLength === 0 &&
-      (addedLinesArray.value.length > 0 ||
-        removedLinesArray.value.length > 0)) ||
-    (config.expectedBoardLength > 0 &&
-      addedLinesArray.value.length === 0 &&
-      removedLinesArray.value.length === 0)
-  ) {
-    errors.push("Invalid configurations (loaded broken configurations?)");
-  }
-  return errors;
+	const errors: string[] = [];
+	if (
+		addedLinesArray.value.includes(ROOT_LINE_STRING) ||
+		addedLinesArray.value.includes(INVALID_LINE_STRING) ||
+		removedLinesArray.value.includes(ROOT_LINE_STRING) ||
+		removedLinesArray.value.includes(INVALID_LINE_STRING)
+	) {
+		errors.push("Invalid line found (loaded broken configurations?)");
+	}
+	if (
+		![0, 3, 4, 5].includes(config.expectedBoardLength) ||
+		(config.expectedBoardLength === 0 &&
+			(addedLinesArray.value.length > 0 ||
+				removedLinesArray.value.length > 0)) ||
+		(config.expectedBoardLength > 0 &&
+			addedLinesArray.value.length === 0 &&
+			removedLinesArray.value.length === 0)
+	) {
+		errors.push("Invalid configurations (loaded broken configurations?)");
+	}
+	return errors;
 });
 
 const isInputValid = computed(
-  () =>
-    errorBasics.value.length === 0 &&
-    errorOop.value.length === 0 &&
-    errorIp.value.length === 0 &&
-    errorMisc.value.length === 0 &&
-    errorLines.value.length === 0
+	() =>
+		errorBasics.value.length === 0 &&
+		errorOop.value.length === 0 &&
+		errorIp.value.length === 0 &&
+		errorMisc.value.length === 0 &&
+		errorLines.value.length === 0,
 );
 
 const clearConfig = () => {
-  config.startingPot = 27;
-  config.effectiveStack = 270;
-  config.rakePercent = 0;
-  config.rakeCap = 0;
-  config.bubbleFactorOption = false;
-  config.oopBubbleFactor = 1.0;
-  config.ipBubbleFactor = 1.0;
-  config.donkOption = false;
-  config.oopFlopBet = "";
-  config.oopFlopRaise = "";
-  config.oopTurnBet = "";
-  config.oopTurnRaise = "";
-  config.oopTurnDonk = "";
-  config.oopRiverBet = "";
-  config.oopRiverRaise = "";
-  config.oopRiverDonk = "";
-  config.ipFlopBet = "";
-  config.ipFlopRaise = "";
-  config.ipTurnBet = "";
-  config.ipTurnRaise = "";
-  config.ipRiverBet = "";
-  config.ipRiverRaise = "";
-  config.addAllInThreshold = 0;
-  config.forceAllInThreshold = 0;
-  config.mergingThreshold = 0;
-  config.expectedBoardLength = 0;
-  config.addedLines = "";
-  config.removedLines = "";
+	config.startingPot = 27;
+	config.effectiveStack = 270;
+	config.rakePercent = 0;
+	config.rakeCap = 0;
+	config.bubbleFactorOption = false;
+	config.oopBubbleFactor = 1.0;
+	config.ipBubbleFactor = 1.0;
+	config.donkOption = false;
+	config.oopFlopBet = "";
+	config.oopFlopRaise = "";
+	config.oopTurnBet = "";
+	config.oopTurnRaise = "";
+	config.oopTurnDonk = "";
+	config.oopRiverBet = "";
+	config.oopRiverRaise = "";
+	config.oopRiverDonk = "";
+	config.ipFlopBet = "";
+	config.ipFlopRaise = "";
+	config.ipTurnBet = "";
+	config.ipTurnRaise = "";
+	config.ipRiverBet = "";
+	config.ipRiverRaise = "";
+	config.addAllInThreshold = 0;
+	config.forceAllInThreshold = 0;
+	config.mergingThreshold = 0;
+	config.expectedBoardLength = 0;
+	config.addedLines = "";
+	config.removedLines = "";
 };
 
 const oopToIp = () => {
-  config.ipFlopBet = config.oopFlopBet;
-  config.ipFlopRaise = config.oopFlopRaise;
-  config.ipTurnBet = config.oopTurnBet;
-  config.ipTurnRaise = config.oopTurnRaise;
-  config.ipRiverBet = config.oopRiverBet;
-  config.ipRiverRaise = config.oopRiverRaise;
+	config.ipFlopBet = config.oopFlopBet;
+	config.ipFlopRaise = config.oopFlopRaise;
+	config.ipTurnBet = config.oopTurnBet;
+	config.ipTurnRaise = config.oopTurnRaise;
+	config.ipRiverBet = config.oopRiverBet;
+	config.ipRiverRaise = config.oopRiverRaise;
 };
 
 const ipToOop = () => {
-  config.oopFlopBet = config.ipFlopBet;
-  config.oopFlopRaise = config.ipFlopRaise;
-  config.oopTurnBet = config.ipTurnBet;
-  config.oopTurnRaise = config.ipTurnRaise;
-  config.oopRiverBet = config.ipRiverBet;
-  config.oopRiverRaise = config.ipRiverRaise;
+	config.oopFlopBet = config.ipFlopBet;
+	config.oopFlopRaise = config.ipFlopRaise;
+	config.oopTurnBet = config.ipTurnBet;
+	config.oopTurnRaise = config.ipTurnRaise;
+	config.oopRiverBet = config.ipRiverBet;
+	config.oopRiverRaise = config.ipRiverRaise;
 };
 
 const dbValue = computed(
-  (): ConfigValue => ({
-    startingPot: config.startingPot,
-    effectiveStack: config.effectiveStack,
-    rakePercent: config.rakePercent,
-    rakeCap: config.rakeCap,
-    bubbleFactorOption: Number(config.bubbleFactorOption),
-    oopBubbleFactor: config.oopBubbleFactor,
-    ipBubbleFactor: config.ipBubbleFactor,
-    donkOption: Number(config.donkOption),
-    oopFlopBet: config.oopFlopBet,
-    oopFlopRaise: config.oopFlopRaise,
-    oopTurnBet: config.oopTurnBet,
-    oopTurnRaise: config.oopTurnRaise,
-    oopTurnDonk: config.donkOption ? config.oopTurnDonk : "",
-    oopRiverBet: config.oopRiverBet,
-    oopRiverRaise: config.oopRiverRaise,
-    oopRiverDonk: config.donkOption ? config.oopRiverDonk : "",
-    ipFlopBet: config.ipFlopBet,
-    ipFlopRaise: config.ipFlopRaise,
-    ipTurnBet: config.ipTurnBet,
-    ipTurnRaise: config.ipTurnRaise,
-    ipRiverBet: config.ipRiverBet,
-    ipRiverRaise: config.ipRiverRaise,
-    addAllInThreshold: config.addAllInThreshold,
-    forceAllInThreshold: config.forceAllInThreshold,
-    mergingThreshold: config.mergingThreshold,
-    expectedBoardLength: config.expectedBoardLength,
-    addedLines: config.addedLines,
-    removedLines: config.removedLines,
-  })
+	(): ConfigValue => ({
+		startingPot: config.startingPot,
+		effectiveStack: config.effectiveStack,
+		rakePercent: config.rakePercent,
+		rakeCap: config.rakeCap,
+		bubbleFactorOption: Number(config.bubbleFactorOption),
+		oopBubbleFactor: config.oopBubbleFactor,
+		ipBubbleFactor: config.ipBubbleFactor,
+		donkOption: Number(config.donkOption),
+		oopFlopBet: config.oopFlopBet,
+		oopFlopRaise: config.oopFlopRaise,
+		oopTurnBet: config.oopTurnBet,
+		oopTurnRaise: config.oopTurnRaise,
+		oopTurnDonk: config.donkOption ? config.oopTurnDonk : "",
+		oopRiverBet: config.oopRiverBet,
+		oopRiverRaise: config.oopRiverRaise,
+		oopRiverDonk: config.donkOption ? config.oopRiverDonk : "",
+		ipFlopBet: config.ipFlopBet,
+		ipFlopRaise: config.ipFlopRaise,
+		ipTurnBet: config.ipTurnBet,
+		ipTurnRaise: config.ipTurnRaise,
+		ipRiverBet: config.ipRiverBet,
+		ipRiverRaise: config.ipRiverRaise,
+		addAllInThreshold: config.addAllInThreshold,
+		forceAllInThreshold: config.forceAllInThreshold,
+		mergingThreshold: config.mergingThreshold,
+		expectedBoardLength: config.expectedBoardLength,
+		addedLines: config.addedLines,
+		removedLines: config.removedLines,
+	}),
 );
 
 const loadConfig = (value: unknown) => {
-  const configValue = value as ConfigValue;
-  config.startingPot = Number(configValue.startingPot);
-  config.effectiveStack = Number(configValue.effectiveStack);
-  config.rakePercent = Number(configValue.rakePercent);
-  config.rakeCap = Number(configValue.rakeCap);
-  config.bubbleFactorOption = Boolean(configValue.bubbleFactorOption);
-  config.oopBubbleFactor = Number(configValue.oopBubbleFactor);
-  config.ipBubbleFactor = Number(configValue.ipBubbleFactor);
-  config.donkOption = Boolean(configValue.donkOption);
-  config.addAllInThreshold = Number(configValue.addAllInThreshold);
-  config.forceAllInThreshold = Number(configValue.forceAllInThreshold);
-  config.mergingThreshold = Number(configValue.mergingThreshold);
-  config.expectedBoardLength = Number(configValue.expectedBoardLength);
-  config.addedLines = String(configValue.addedLines);
-  config.removedLines = String(configValue.removedLines);
+	const configValue = value as ConfigValue;
+	config.startingPot = Number(configValue.startingPot);
+	config.effectiveStack = Number(configValue.effectiveStack);
+	config.rakePercent = Number(configValue.rakePercent);
+	config.rakeCap = Number(configValue.rakeCap);
+	config.bubbleFactorOption = Boolean(configValue.bubbleFactorOption);
+	config.oopBubbleFactor = Number(configValue.oopBubbleFactor);
+	config.ipBubbleFactor = Number(configValue.ipBubbleFactor);
+	config.donkOption = Boolean(configValue.donkOption);
+	config.addAllInThreshold = Number(configValue.addAllInThreshold);
+	config.forceAllInThreshold = Number(configValue.forceAllInThreshold);
+	config.mergingThreshold = Number(configValue.mergingThreshold);
+	config.expectedBoardLength = Number(configValue.expectedBoardLength);
+	config.addedLines = String(configValue.addedLines);
+	config.removedLines = String(configValue.removedLines);
 
-  const betMembers = [
-    "oopFlopBet",
-    "oopFlopRaise",
-    "oopTurnBet",
-    "oopTurnRaise",
-    "oopTurnDonk",
-    "oopRiverBet",
-    "oopRiverRaise",
-    "oopRiverDonk",
-    "ipFlopBet",
-    "ipFlopRaise",
-    "ipTurnBet",
-    "ipTurnRaise",
-    "ipRiverBet",
-    "ipRiverRaise",
-  ] as const;
+	const betMembers = [
+		"oopFlopBet",
+		"oopFlopRaise",
+		"oopTurnBet",
+		"oopTurnRaise",
+		"oopTurnDonk",
+		"oopRiverBet",
+		"oopRiverRaise",
+		"oopRiverDonk",
+		"ipFlopBet",
+		"ipFlopRaise",
+		"ipTurnBet",
+		"ipTurnRaise",
+		"ipRiverBet",
+		"ipRiverRaise",
+	] as const;
 
-  for (const member of betMembers) {
-    const str = String(configValue[member]);
-    const sanitized = sanitizeBetString(str, member.endsWith("Raise"));
-    config[member] = sanitized.valid ? sanitized.s : str;
-  }
+	for (const member of betMembers) {
+		const str = String(configValue[member]);
+		const sanitized = sanitizeBetString(str, member.endsWith("Raise"));
+		config[member] = sanitized.valid ? sanitized.s : str;
+	}
 };
 
 const startEdit = () => {
-  isEditMode.value = true;
-  if (config.expectedBoardLength === 0) {
-    config.expectedBoardLength = Math.max(config.board.length, 3);
-  }
-  store.headers["tree-config"].push("Tree Preview & Edit");
+	isEditMode.value = true;
+	if (config.expectedBoardLength === 0) {
+		config.expectedBoardLength = Math.max(config.board.length, 3);
+	}
+	store.headers["tree-config"].push("Tree Preview & Edit");
 };
 
 const clearEdit = () => {
-  config.expectedBoardLength = 0;
-  config.addedLines = "";
-  config.removedLines = "";
+	config.expectedBoardLength = 0;
+	config.addedLines = "";
+	config.removedLines = "";
 };
 
 const saveEdit = (addedLines: string, removedLines: string) => {
-  isEditMode.value = false;
-  config.addedLines = addedLines;
-  config.removedLines = removedLines;
-  if (config.addedLines === "" && config.removedLines === "") {
-    config.expectedBoardLength = 0;
-  }
-  store.headers["tree-config"].pop();
+	isEditMode.value = false;
+	config.addedLines = addedLines;
+	config.removedLines = removedLines;
+	if (config.addedLines === "" && config.removedLines === "") {
+		config.expectedBoardLength = 0;
+	}
+	store.headers["tree-config"].pop();
 };
 
 const cancelEdit = () => {
-  isEditMode.value = false;
-  if (config.addedLines === "" && config.removedLines === "") {
-    config.expectedBoardLength = 0;
-  }
-  store.headers["tree-config"].pop();
+	isEditMode.value = false;
+	if (config.addedLines === "" && config.removedLines === "") {
+		config.expectedBoardLength = 0;
+	}
+	store.headers["tree-config"].pop();
 };
-
 </script>
 
 <style scoped>

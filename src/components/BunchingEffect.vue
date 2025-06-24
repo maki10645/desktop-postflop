@@ -201,17 +201,17 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore, useConfigStore } from "../store";
-import { trimRegex, rangeRegex, cardText } from "../utils";
 import * as invokes from "../invokes";
+import { useConfigStore, useStore } from "../store";
+import { cardText, rangeRegex, trimRegex } from "../utils";
 
+import {
+	InformationCircleIcon,
+	QuestionMarkCircleIcon,
+} from "@heroicons/vue/20/solid";
+import { Tippy } from "vue-tippy";
 import RangeEditor from "./RangeEditor.vue";
 import RangeMiniViewer from "./RangeMiniViewer.vue";
-import { Tippy } from "vue-tippy";
-import {
-  InformationCircleIcon,
-  QuestionMarkCircleIcon,
-} from "@heroicons/vue/20/solid";
 
 const store = useStore();
 const configStore = useConfigStore();
@@ -243,143 +243,143 @@ const elapsedTimeMs = ref(-1);
 let startTime = 0;
 
 const onUpdate = async (player: number) => {
-  const weights = await invokes.rangeGetWeights(player + 2);
-  for (let i = 0; i < 13 * 13; ++i) {
-    store.ranges[player + 2][i] = weights[i] * 100;
-  }
-  isRangeTextError.value[player] = false;
+	const weights = await invokes.rangeGetWeights(player + 2);
+	for (let i = 0; i < 13 * 13; ++i) {
+		store.ranges[player + 2][i] = weights[i] * 100;
+	}
+	isRangeTextError.value[player] = false;
 };
 
 const onUpdateLocal = async (player: number) => {
-  store.rangeText[player+2] = await invokes.rangeToString(player + 2);
-  store.rangeCombos[player+2] = await invokes.rangeNumCombos(player + 2);
+	store.rangeText[player + 2] = await invokes.rangeToString(player + 2);
+	store.rangeCombos[player + 2] = await invokes.rangeNumCombos(player + 2);
 };
 
 const editRange = async (player: number) => {
-  rangeTextCopy.value = await invokes.rangeToString(player + 2);
-  store.headers["bunching"].push(`Fold Range ${player + 1}`);
-  editingPlayer.value = player;
+	rangeTextCopy.value = await invokes.rangeToString(player + 2);
+	store.headers.bunching.push(`Fold Range ${player + 1}`);
+	editingPlayer.value = player;
 };
 
 const onRangeTextChange = async (player: number) => {
-  const trimmed = store.rangeText[player+2].replace(trimRegex, "$1").trim();
-  const ranges = trimmed.split(",");
+	const trimmed = store.rangeText[player + 2].replace(trimRegex, "$1").trim();
+	const ranges = trimmed.split(",");
 
-  if (ranges[ranges.length - 1] === "") {
-    ranges.pop();
-  }
+	if (ranges[ranges.length - 1] === "") {
+		ranges.pop();
+	}
 
-  for (const range of ranges) {
-    if (!rangeRegex.test(range)) {
-      isRangeTextError.value[player] = true;
-      return;
-    }
-  }
+	for (const range of ranges) {
+		if (!rangeRegex.test(range)) {
+			isRangeTextError.value[player] = true;
+			return;
+		}
+	}
 
-  const errorString = await invokes.rangeFromString(player + 2, trimmed);
+	const errorString = await invokes.rangeFromString(player + 2, trimmed);
 
-  if (errorString) {
-    isRangeTextError.value[player] = true;
-  } else {
-    await onUpdate(player);
-    await onUpdateLocal(player);
-  }
+	if (errorString) {
+		isRangeTextError.value[player] = true;
+	} else {
+		await onUpdate(player);
+		await onUpdateLocal(player);
+	}
 };
 
 const invertRange = async (player: number) => {
-  await invokes.rangeInvert(player + 2);
-  await onUpdate(player);
-  await onUpdateLocal(player);
+	await invokes.rangeInvert(player + 2);
+	await onUpdate(player);
+	await onUpdateLocal(player);
 };
 
 const clearRange = async (player: number) => {
-  await invokes.rangeClear(player + 2);
-  await onUpdate(player);
-  await onUpdateLocal(player);
+	await invokes.rangeClear(player + 2);
+	await onUpdate(player);
+	await onUpdateLocal(player);
 };
 
 const runPrecomputation = async () => {
-  store.bunchingFlop = [];
+	store.bunchingFlop = [];
 
-  const errorString = await invokes.bunchingInit(configStore.board);
-  if (errorString) {
-    statusText.value = `Error: ${errorString}`;
-    return;
-  }
+	const errorString = await invokes.bunchingInit(configStore.board);
+	if (errorString) {
+		statusText.value = `Error: ${errorString}`;
+		return;
+	}
 
-  statusText.value = "Phase 1/3 - Preparing...";
-  flopCopy.value = configStore.board.slice(0, 3);
-  hasBunchingRun.value = true;
-  elapsedTimeMs.value = 0;
-  await resumePrecomputation();
+	statusText.value = "Phase 1/3 - Preparing...";
+	flopCopy.value = configStore.board.slice(0, 3);
+	hasBunchingRun.value = true;
+	elapsedTimeMs.value = 0;
+	await resumePrecomputation();
 };
 
 const clearPrecomputation = async () => {
-  if (store.isBunchingRunning) {
-    terminateFlag.value = true;
-  } else {
-    await invokes.bunchingClear();
-    store.bunchingFlop = [];
-    statusText.value = "No bunching data";
-    hasBunchingRun.value = false;
-    isBunchingPaused.value = false;
-  }
+	if (store.isBunchingRunning) {
+		terminateFlag.value = true;
+	} else {
+		await invokes.bunchingClear();
+		store.bunchingFlop = [];
+		statusText.value = "No bunching data";
+		hasBunchingRun.value = false;
+		isBunchingPaused.value = false;
+	}
 };
 
 const resumePrecomputation = async () => {
-  store.isBunchingRunning = true;
-  isBunchingPaused.value = false;
-  startTime = performance.now();
-  await invokes.setNumThreads(numThreads.value);
+	store.isBunchingRunning = true;
+	isBunchingPaused.value = false;
+	startTime = performance.now();
+	await invokes.setNumThreads(numThreads.value);
 
-  while (true) {
-    if (terminateFlag.value) {
-      await invokes.bunchingClear();
-      store.bunchingFlop = [];
-      statusText.value = "No bunching data";
-      hasBunchingRun.value = false;
-      break;
-    }
+	while (true) {
+		if (terminateFlag.value) {
+			await invokes.bunchingClear();
+			store.bunchingFlop = [];
+			statusText.value = "No bunching data";
+			hasBunchingRun.value = false;
+			break;
+		}
 
-    if (pauseFlag.value) {
-      isBunchingPaused.value = true;
-      break;
-    }
+		if (pauseFlag.value) {
+			isBunchingPaused.value = true;
+			break;
+		}
 
-    const [phase, percent] = await invokes.bunchingProgress();
+		const [phase, percent] = await invokes.bunchingProgress();
 
-    if (phase === 3 && percent === 100) {
-      store.bunchingFlop = flopCopy.value;
-      statusText.value = "Bunching data ready!";
-      break;
-    }
+		if (phase === 3 && percent === 100) {
+			store.bunchingFlop = flopCopy.value;
+			statusText.value = "Bunching data ready!";
+			break;
+		}
 
-    statusText.value = `Phase ${phase}/3 - ${percent}% completed...`;
-  }
+		statusText.value = `Phase ${phase}/3 - ${percent}% completed...`;
+	}
 
-  elapsedTimeMs.value += performance.now() - startTime;
+	elapsedTimeMs.value += performance.now() - startTime;
 
-  if (!terminateFlag.value && !pauseFlag.value) {
-    statusText.value += ` (Time: ${(elapsedTimeMs.value / 1000).toFixed(2)}s)`;
-  }
+	if (!terminateFlag.value && !pauseFlag.value) {
+		statusText.value += ` (Time: ${(elapsedTimeMs.value / 1000).toFixed(2)}s)`;
+	}
 
-  store.isBunchingRunning = false;
-  terminateFlag.value = false;
-  pauseFlag.value = false;
+	store.isBunchingRunning = false;
+	terminateFlag.value = false;
+	pauseFlag.value = false;
 };
 
 const saveEdit = async () => {
-  isRangeTextError.value[editingPlayer.value] = false;
-  await onUpdateLocal(editingPlayer.value);
-  store.headers["bunching"].pop();
-  editingPlayer.value = -1;
+	isRangeTextError.value[editingPlayer.value] = false;
+	await onUpdateLocal(editingPlayer.value);
+	store.headers.bunching.pop();
+	editingPlayer.value = -1;
 };
 
 const cancelEdit = async () => {
-  store.rangeText[editingPlayer.value] = rangeTextCopy.value;
-  await invokes.rangeFromString(editingPlayer.value + 2, rangeTextCopy.value);
-  await onUpdate(editingPlayer.value);
-  store.headers["bunching"].pop();
-  editingPlayer.value = -1;
+	store.rangeText[editingPlayer.value] = rangeTextCopy.value;
+	await invokes.rangeFromString(editingPlayer.value + 2, rangeTextCopy.value);
+	await onUpdate(editingPlayer.value);
+	store.headers.bunching.pop();
+	editingPlayer.value = -1;
 };
 </script>

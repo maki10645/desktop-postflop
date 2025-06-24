@@ -64,23 +64,23 @@
 import { computed, ref } from "vue";
 import { useStore } from "../store";
 
-import NavBar from "./NavBar.vue";
-import SideBar from "./SideBar.vue";
-import RangeEditor from "./RangeEditor.vue";
-import BoardSelector from "./BoardSelector.vue";
-import TreeConfig from "./TreeConfig.vue";
-import BunchingEffect from "./BunchingEffect.vue";
-import RunSolver from "./RunSolver.vue";
 import AboutPage from "./AboutPage.vue";
-import ResultViewer from "./ResultViewer.vue";
+import BoardSelector from "./BoardSelector.vue";
+import BunchingEffect from "./BunchingEffect.vue";
 import LoadResultPage from "./LoadResultPage.vue";
+import NavBar from "./NavBar.vue";
+import RangeEditor from "./RangeEditor.vue";
+import ResultViewer from "./ResultViewer.vue";
+import RunSolver from "./RunSolver.vue";
+import SideBar from "./SideBar.vue";
+import TreeConfig from "./TreeConfig.vue";
 
 const store = useStore();
 const header = computed(() => store.headers[store.sideView].join(" > "));
 
 const clientHeight = ref(0);
 const updateClientHeight = () => {
-  clientHeight.value = document.documentElement.clientHeight - 0.01;
+	clientHeight.value = document.documentElement.clientHeight - 0.01;
 };
 
 updateClientHeight();

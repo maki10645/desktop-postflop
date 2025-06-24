@@ -315,155 +315,155 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import * as invokes from "../invokes";
 import {
-  useStore,
-  useConfigStore,
-  useTmpConfigStore,
-  useSavedConfigStore,
-  saveConfigTmp,
-  saveConfig,
+	saveConfig,
+	saveConfigTmp,
+	useConfigStore,
+	useSavedConfigStore,
+	useStore,
+	useTmpConfigStore,
 } from "../store";
 import {
-  MAX_AMOUNT,
-  convertBetString,
-  ROOT_LINE_STRING,
-  INVALID_LINE_STRING,
-  readableLineString,
+	INVALID_LINE_STRING,
+	MAX_AMOUNT,
+	ROOT_LINE_STRING,
+	convertBetString,
+	readableLineString,
 } from "../utils";
-import * as invokes from "../invokes";
 
-import { Tippy } from "vue-tippy";
 import { QuestionMarkCircleIcon } from "@heroicons/vue/20/solid";
+import { Tippy } from "vue-tippy";
 
 const checkConfig = (
-  config: ReturnType<typeof useConfigStore>
+	config: ReturnType<typeof useConfigStore>,
 ): string | null => {
-  if (config.board.length < 3) {
-    return "Board must consist of at least three cards";
-  }
+	if (config.board.length < 3) {
+		return "Board must consist of at least three cards";
+	}
 
-  if (config.startingPot <= 0) {
-    return "Starting pot must be positive";
-  }
+	if (config.startingPot <= 0) {
+		return "Starting pot must be positive";
+	}
 
-  if (config.startingPot > MAX_AMOUNT) {
-    return "Starting pot is too large";
-  }
+	if (config.startingPot > MAX_AMOUNT) {
+		return "Starting pot is too large";
+	}
 
-  if (config.startingPot % 1 !== 0) {
-    return "Starting pot must be an integer";
-  }
+	if (config.startingPot % 1 !== 0) {
+		return "Starting pot must be an integer";
+	}
 
-  if (config.effectiveStack <= 0) {
-    return "Effective stack must be positive";
-  }
+	if (config.effectiveStack <= 0) {
+		return "Effective stack must be positive";
+	}
 
-  if (config.effectiveStack > MAX_AMOUNT) {
-    return "Effective stack is too large";
-  }
+	if (config.effectiveStack > MAX_AMOUNT) {
+		return "Effective stack is too large";
+	}
 
-  if (config.effectiveStack % 1 !== 0) {
-    return "Effective stack is be an integer";
-  }
+	if (config.effectiveStack % 1 !== 0) {
+		return "Effective stack is be an integer";
+	}
 
-  if ( config.bubbleFactorOption ) {
-    if ( config.oopBubbleFactor == 0 || 
-        config.ipBubbleFactor  == 0 || 
-        config.oopBubbleFactor >  100.0 || 
-        config.ipBubbleFactor  >  100.0 || 
-        config.oopBubbleFactor < -100.0 || 
-        config.ipBubbleFactor  < -100.0 ||
-        Number.isNaN(config.oopBubbleFactor) ||
-        Number.isNaN(config.ipBubbleFactor)
-      )
-    {
-      return "Bubble Factor value is wrong.";
-    }
-  }else{
-    config.oopBubbleFactor = 1.0;
-    config.ipBubbleFactor  = 1.0;
-  }  
+	if (config.bubbleFactorOption) {
+		if (
+			config.oopBubbleFactor === 0 ||
+			config.ipBubbleFactor === 0 ||
+			config.oopBubbleFactor > 100.0 ||
+			config.ipBubbleFactor > 100.0 ||
+			config.oopBubbleFactor < -100.0 ||
+			config.ipBubbleFactor < -100.0 ||
+			Number.isNaN(config.oopBubbleFactor) ||
+			Number.isNaN(config.ipBubbleFactor)
+		) {
+			return "Bubble Factor value is wrong.";
+		}
+	} else {
+		config.oopBubbleFactor = 1.0;
+		config.ipBubbleFactor = 1.0;
+	}
 
-  const betConfig = [
-    { s: config.oopFlopBetSanitized, kind: "OOP flop bet" },
-    { s: config.oopFlopRaiseSanitized, kind: "OOP flop raise" },
-    { s: config.oopTurnBetSanitized, kind: "OOP turn bet" },
-    { s: config.oopTurnRaiseSanitized, kind: "OOP turn raise" },
-    { s: config.oopRiverBetSanitized, kind: "OOP river bet" },
-    { s: config.oopRiverRaiseSanitized, kind: "OOP river raise" },
-    { s: config.ipFlopBetSanitized, kind: "IP flop bet" },
-    { s: config.ipFlopRaiseSanitized, kind: "IP flop raise" },
-    { s: config.ipTurnBetSanitized, kind: "IP turn bet" },
-    { s: config.ipTurnRaiseSanitized, kind: "IP turn raise" },
-    { s: config.ipRiverBetSanitized, kind: "IP river bet" },
-    { s: config.ipRiverRaiseSanitized, kind: "IP river raise" },
-  ];
+	const betConfig = [
+		{ s: config.oopFlopBetSanitized, kind: "OOP flop bet" },
+		{ s: config.oopFlopRaiseSanitized, kind: "OOP flop raise" },
+		{ s: config.oopTurnBetSanitized, kind: "OOP turn bet" },
+		{ s: config.oopTurnRaiseSanitized, kind: "OOP turn raise" },
+		{ s: config.oopRiverBetSanitized, kind: "OOP river bet" },
+		{ s: config.oopRiverRaiseSanitized, kind: "OOP river raise" },
+		{ s: config.ipFlopBetSanitized, kind: "IP flop bet" },
+		{ s: config.ipFlopRaiseSanitized, kind: "IP flop raise" },
+		{ s: config.ipTurnBetSanitized, kind: "IP turn bet" },
+		{ s: config.ipTurnRaiseSanitized, kind: "IP turn raise" },
+		{ s: config.ipRiverBetSanitized, kind: "IP river bet" },
+		{ s: config.ipRiverRaiseSanitized, kind: "IP river raise" },
+	];
 
-  for (const { s, kind } of betConfig) {
-    if (!s.valid) {
-      return `${kind}: ${s.s}`;
-    }
-  }
+	for (const { s, kind } of betConfig) {
+		if (!s.valid) {
+			return `${kind}: ${s.s}`;
+		}
+	}
 
-  if (config.donkOption) {
-    if (!config.oopTurnDonkSanitized.valid) {
-      return `OOP turn donk: ${config.oopTurnDonkSanitized.s}`;
-    }
-    if (!config.oopRiverDonkSanitized.valid) {
-      return `OOP river donk: ${config.oopRiverDonkSanitized.s}`;
-    }
-  }
+	if (config.donkOption) {
+		if (!config.oopTurnDonkSanitized.valid) {
+			return `OOP turn donk: ${config.oopTurnDonkSanitized.s}`;
+		}
+		if (!config.oopRiverDonkSanitized.valid) {
+			return `OOP river donk: ${config.oopRiverDonkSanitized.s}`;
+		}
+	}
 
-  if (config.addAllInThreshold < 0) {
-    return "Invalid add all-in threshold";
-  }
+	if (config.addAllInThreshold < 0) {
+		return "Invalid add all-in threshold";
+	}
 
-  if (config.forceAllInThreshold < 0) {
-    return "Invalid force all-in threshold";
-  }
+	if (config.forceAllInThreshold < 0) {
+		return "Invalid force all-in threshold";
+	}
 
-  if (config.mergingThreshold < 0) {
-    return "Invalid merging threshold";
-  }
+	if (config.mergingThreshold < 0) {
+		return "Invalid merging threshold";
+	}
 
-  if (
-    config.expectedBoardLength > 0 &&
-    config.board.length !== config.expectedBoardLength
-  ) {
-    return `Invalid board (expected ${config.expectedBoardLength} cards)`;
-  }
+	if (
+		config.expectedBoardLength > 0 &&
+		config.board.length !== config.expectedBoardLength
+	) {
+		return `Invalid board (expected ${config.expectedBoardLength} cards)`;
+	}
 
-  const addedLinesArray =
-    config.addedLines === ""
-      ? []
-      : config.addedLines.split(",").map(readableLineString);
+	const addedLinesArray =
+		config.addedLines === ""
+			? []
+			: config.addedLines.split(",").map(readableLineString);
 
-  const removedLinesArray =
-    config.removedLines === ""
-      ? []
-      : config.removedLines.split(",").map(readableLineString);
+	const removedLinesArray =
+		config.removedLines === ""
+			? []
+			: config.removedLines.split(",").map(readableLineString);
 
-  if (
-    addedLinesArray.includes(ROOT_LINE_STRING) ||
-    addedLinesArray.includes(INVALID_LINE_STRING) ||
-    removedLinesArray.includes(ROOT_LINE_STRING) ||
-    removedLinesArray.includes(INVALID_LINE_STRING)
-  ) {
-    return "Invalid line found (loaded broken configurations?)";
-  }
+	if (
+		addedLinesArray.includes(ROOT_LINE_STRING) ||
+		addedLinesArray.includes(INVALID_LINE_STRING) ||
+		removedLinesArray.includes(ROOT_LINE_STRING) ||
+		removedLinesArray.includes(INVALID_LINE_STRING)
+	) {
+		return "Invalid line found (loaded broken configurations?)";
+	}
 
-  if (
-    ![0, 3, 4, 5].includes(config.expectedBoardLength) ||
-    (config.expectedBoardLength === 0 &&
-      (addedLinesArray.length > 0 || removedLinesArray.length > 0)) ||
-    (config.expectedBoardLength > 0 &&
-      addedLinesArray.length === 0 &&
-      removedLinesArray.length === 0)
-  ) {
-    return "Invalid configurations (loaded broken configurations?)";
-  }
+	if (
+		![0, 3, 4, 5].includes(config.expectedBoardLength) ||
+		(config.expectedBoardLength === 0 &&
+			(addedLinesArray.length > 0 || removedLinesArray.length > 0)) ||
+		(config.expectedBoardLength > 0 &&
+			addedLinesArray.length === 0 &&
+			removedLinesArray.length === 0)
+	) {
+		return "Invalid configurations (loaded broken configurations?)";
+	}
 
-  return null;
+	return null;
 };
 
 const store = useStore();
@@ -497,239 +497,234 @@ let startTime = 0;
 let exploitabilityUpdated = false;
 
 const memoryUsage = computed(() => {
-  if (store.isBunchingEnabled && store.bunchingFlop.length > 0) {
-    return memoryUsageRaw.value + memoryUsageBunching.value;
-  } else {
-    return memoryUsageRaw.value;
-  }
+	if (store.isBunchingEnabled && store.bunchingFlop.length > 0) {
+		return memoryUsageRaw.value + memoryUsageBunching.value;
+	}
+	return memoryUsageRaw.value;
 });
 
 const memoryUsageCompressed = computed(() => {
-  if (store.isBunchingEnabled && store.bunchingFlop.length > 0) {
-    return memoryUsageRawCompressed.value + memoryUsageBunching.value;
-  } else {
-    return memoryUsageRawCompressed.value;
-  }
+	if (store.isBunchingEnabled && store.bunchingFlop.length > 0) {
+		return memoryUsageRawCompressed.value + memoryUsageBunching.value;
+	}
+	return memoryUsageRawCompressed.value;
 });
 
 const memoryUsageSelected = computed(() => {
-  if (isCompressionEnabled.value) {
-    return memoryUsageCompressed.value;
-  } else {
-    return memoryUsage.value;
-  }
+	if (isCompressionEnabled.value) {
+		return memoryUsageCompressed.value;
+	}
+	return memoryUsage.value;
 });
 
 const areFlopMatching = computed(() => {
-  const flop = savedConfig.board.slice(0, 3);
-  const bunchingFlop = store.bunchingFlop;
-  return (
-    !store.isBunchingEnabled ||
-    bunchingFlop.length === 0 ||
-    (flop[0] === bunchingFlop[0] &&
-      flop[1] === bunchingFlop[1] &&
-      flop[2] === bunchingFlop[2])
-  );
+	const flop = savedConfig.board.slice(0, 3);
+	const bunchingFlop = store.bunchingFlop;
+	return (
+		!store.isBunchingEnabled ||
+		bunchingFlop.length === 0 ||
+		(flop[0] === bunchingFlop[0] &&
+			flop[1] === bunchingFlop[1] &&
+			flop[2] === bunchingFlop[2])
+	);
 });
 
 const iterationText = computed(() => {
-  if (currentIteration.value === -1) {
-    return "Allocating memory...";
-  } else if (currentIteration.value === -2) {
-    return "Collecting bunching data...";
-  } else {
-    return `Iteration: ${currentIteration.value}`;
-  }
+	if (currentIteration.value === -1) {
+		return "Allocating memory...";
+	}
+	if (currentIteration.value === -2) {
+		return "Collecting bunching data...";
+	}
+	return `Iteration: ${currentIteration.value}`;
 });
 
 const exploitabilityText = computed(() => {
-  if (!Number.isFinite(exploitability.value)) {
-    return "";
-  } else {
-    const valueText = exploitability.value.toFixed(2);
-    const percent = (exploitability.value * 100) / config.startingPot;
-    const percentText = `${percent.toFixed(2)}%`;
-    return `Exploitability: ${valueText} (${percentText})`;
-  }
+	if (!Number.isFinite(exploitability.value)) {
+		return "";
+	}
+	const valueText = exploitability.value.toFixed(2);
+	const percent = (exploitability.value * 100) / config.startingPot;
+	const percentText = `${percent.toFixed(2)}%`;
+	return `Exploitability: ${valueText} (${percentText})`;
 });
 
 const timeText = computed(() => {
-  if (elapsedTimeMs.value === -1 || !store.isSolverFinished) {
-    return "";
-  } else {
-    return `Time: ${(elapsedTimeMs.value / 1000).toFixed(2)}s`;
-  }
+	if (elapsedTimeMs.value === -1 || !store.isSolverFinished) {
+		return "";
+	}
+	return `Time: ${(elapsedTimeMs.value / 1000).toFixed(2)}s`;
 });
 
 const buildTree = async () => {
-  isTreeBuilt.value = false;
+	isTreeBuilt.value = false;
 
-  const configError = checkConfig(config);
-  if (configError !== null) {
-    treeStatus.value = `Error: ${configError}`;
-    return;
-  }
+	const configError = checkConfig(config);
+	if (configError !== null) {
+		treeStatus.value = `Error: ${configError}`;
+		return;
+	}
 
-  saveConfigTmp();
-  isTreeBuilding.value = true;
-  treeStatus.value = "Building tree...";
+	saveConfigTmp();
+	isTreeBuilding.value = true;
+	treeStatus.value = "Building tree...";
 
-  try{
-    const errorString = await invokes.gameInit(
-      tmpConfig.board,
-      tmpConfig.startingPot,
-      tmpConfig.effectiveStack,
-      tmpConfig.rakePercent / 100,
-      tmpConfig.rakeCap,
-      tmpConfig.oopBubbleFactor,
-      tmpConfig.ipBubbleFactor,
-      tmpConfig.donkOption,
-      convertBetString(tmpConfig.oopFlopBet),
-      convertBetString(tmpConfig.oopFlopRaise),
-      convertBetString(tmpConfig.oopTurnBet),
-      convertBetString(tmpConfig.oopTurnRaise),
-      tmpConfig.donkOption ? convertBetString(tmpConfig.oopTurnDonk) : "",
-      convertBetString(tmpConfig.oopRiverBet),
-      convertBetString(tmpConfig.oopRiverRaise),
-      tmpConfig.donkOption ? convertBetString(tmpConfig.oopRiverDonk) : "",
-      convertBetString(tmpConfig.ipFlopBet),
-      convertBetString(tmpConfig.ipFlopRaise),
-      convertBetString(tmpConfig.ipTurnBet),
-      convertBetString(tmpConfig.ipTurnRaise),
-      convertBetString(tmpConfig.ipRiverBet),
-      convertBetString(tmpConfig.ipRiverRaise),
-      tmpConfig.addAllInThreshold / 100,
-      tmpConfig.forceAllInThreshold / 100,
-      tmpConfig.mergingThreshold / 100,
-      tmpConfig.addedLines,
-      tmpConfig.removedLines);
+	try {
+		const errorString = await invokes.gameInit(
+			tmpConfig.board,
+			tmpConfig.startingPot,
+			tmpConfig.effectiveStack,
+			tmpConfig.rakePercent / 100,
+			tmpConfig.rakeCap,
+			tmpConfig.oopBubbleFactor,
+			tmpConfig.ipBubbleFactor,
+			tmpConfig.donkOption,
+			convertBetString(tmpConfig.oopFlopBet),
+			convertBetString(tmpConfig.oopFlopRaise),
+			convertBetString(tmpConfig.oopTurnBet),
+			convertBetString(tmpConfig.oopTurnRaise),
+			tmpConfig.donkOption ? convertBetString(tmpConfig.oopTurnDonk) : "",
+			convertBetString(tmpConfig.oopRiverBet),
+			convertBetString(tmpConfig.oopRiverRaise),
+			tmpConfig.donkOption ? convertBetString(tmpConfig.oopRiverDonk) : "",
+			convertBetString(tmpConfig.ipFlopBet),
+			convertBetString(tmpConfig.ipFlopRaise),
+			convertBetString(tmpConfig.ipTurnBet),
+			convertBetString(tmpConfig.ipTurnRaise),
+			convertBetString(tmpConfig.ipRiverBet),
+			convertBetString(tmpConfig.ipRiverRaise),
+			tmpConfig.addAllInThreshold / 100,
+			tmpConfig.forceAllInThreshold / 100,
+			tmpConfig.mergingThreshold / 100,
+			tmpConfig.addedLines,
+			tmpConfig.removedLines,
+		);
 
-      if (errorString) {
-        isTreeBuilding.value = false;
-        treeStatus.value = "Error: " + errorString;
-        return;
-      }
+		if (errorString) {
+			isTreeBuilding.value = false;
+			treeStatus.value = `Error: ${errorString}`;
+			return;
+		}
+	} catch (e: unknown) {
+		isTreeBuilding.value = false;
+		treeStatus.value = `Error: ${e}`;
+		return;
+	}
 
-  }catch(e:unknown){
-    isTreeBuilding.value = false;
-    treeStatus.value = "Error: " + e
-    return;
-  }
+	saveConfig();
 
-  saveConfig();
+	[memoryUsageRaw.value, memoryUsageRawCompressed.value] =
+		await invokes.gameMemoryUsage();
+	memoryUsageBunching.value = await invokes.gameMemoryUsageBunching();
 
-  [memoryUsageRaw.value, memoryUsageRawCompressed.value] =
-    await invokes.gameMemoryUsage();
-  memoryUsageBunching.value = await invokes.gameMemoryUsageBunching();
+	osName.value = await invokes.osName();
+	[availableMemory.value, totalMemory.value] = await invokes.memory();
 
-  osName.value = await invokes.osName();
-  [availableMemory.value, totalMemory.value] = await invokes.memory();
+	if (osName.value === "macos") {
+		// available memory is not useful on macOS
+		maxMemoryUsage.value = totalMemory.value * 0.7;
+	} else {
+		maxMemoryUsage.value = availableMemory.value;
+	}
 
-  if (osName.value === "macos") {
-    // available memory is not useful on macOS
-    maxMemoryUsage.value = totalMemory.value * 0.7;
-  } else {
-    maxMemoryUsage.value = availableMemory.value;
-  }
+	if (
+		memoryUsage.value > maxMemoryUsage.value &&
+		memoryUsageCompressed.value <= maxMemoryUsage.value
+	) {
+		isCompressionEnabled.value = true;
+	}
 
-  if (
-    memoryUsage.value > maxMemoryUsage.value &&
-    memoryUsageCompressed.value <= maxMemoryUsage.value
-  ) {
-    isCompressionEnabled.value = true;
-  }
+	isTreeBuilding.value = false;
+	isTreeBuilt.value = true;
+	treeStatus.value = "Successfully built tree";
 
-  isTreeBuilding.value = false;
-  isTreeBuilt.value = true;
-  treeStatus.value = "Successfully built tree";
-
-  store.isSolverRunning = false;
-  store.isSolverPaused = false;
-  store.isSolverFinished = false;
-  store.isSolverError = false;
+	store.isSolverRunning = false;
+	store.isSolverPaused = false;
+	store.isSolverFinished = false;
+	store.isSolverError = false;
 };
 
 const runSolver = async () => {
-  terminateFlag.value = false;
-  pauseFlag.value = false;
-  currentIteration.value = -1;
-  exploitability.value = Number.POSITIVE_INFINITY;
-  elapsedTimeMs.value = -1;
+	terminateFlag.value = false;
+	pauseFlag.value = false;
+	currentIteration.value = -1;
+	exploitability.value = Number.POSITIVE_INFINITY;
+	elapsedTimeMs.value = -1;
 
-  store.isSolverRunning = true;
+	store.isSolverRunning = true;
 
-  startTime = performance.now();
+	startTime = performance.now();
 
-  await invokes.setNumThreads(numThreads.value);
-  await invokes.gameAllocateMemory(isCompressionEnabled.value);
+	await invokes.setNumThreads(numThreads.value);
+	await invokes.gameAllocateMemory(isCompressionEnabled.value);
 
-  if (store.isBunchingEnabled && store.bunchingFlop.length > 0) {
-    currentIteration.value = -2;
-    const errorString = await invokes.gameSetBunching();
-    if (errorString) {
-      solverErrorText.value = "Error: " + errorString;
-      store.isSolverRunning = false;
-      store.isSolverError = true;
-      return;
-    }
-  }
+	if (store.isBunchingEnabled && store.bunchingFlop.length > 0) {
+		currentIteration.value = -2;
+		const errorString = await invokes.gameSetBunching();
+		if (errorString) {
+			solverErrorText.value = `Error: ${errorString}`;
+			store.isSolverRunning = false;
+			store.isSolverError = true;
+			return;
+		}
+	}
 
-  currentIteration.value = 0;
-  exploitability.value = Math.max(await invokes.gameExploitability(), 0);
-  exploitabilityUpdated = true;
+	currentIteration.value = 0;
+	exploitability.value = Math.max(await invokes.gameExploitability(), 0);
+	exploitabilityUpdated = true;
 
-  await resumeSolver();
+	await resumeSolver();
 };
 
 const resumeSolver = async () => {
-  store.isSolverRunning = true;
-  store.isSolverPaused = false;
+	store.isSolverRunning = true;
+	store.isSolverPaused = false;
 
-  if (startTime === 0) {
-    startTime = performance.now();
-    await invokes.setNumThreads(numThreads.value);
-  }
+	if (startTime === 0) {
+		startTime = performance.now();
+		await invokes.setNumThreads(numThreads.value);
+	}
 
-  const target = (config.startingPot * targetExploitability.value) / 100;
+	const target = (config.startingPot * targetExploitability.value) / 100;
 
-  while (
-    !terminateFlag.value &&
-    currentIteration.value < maxIterations.value &&
-    exploitability.value > target
-  ) {
-    if (pauseFlag.value) {
-      const end = performance.now();
-      elapsedTimeMs.value += end - startTime;
-      startTime = 0;
-      pauseFlag.value = false;
-      store.isSolverRunning = false;
-      store.isSolverPaused = true;
-      return;
-    }
+	while (
+		!terminateFlag.value &&
+		currentIteration.value < maxIterations.value &&
+		exploitability.value > target
+	) {
+		if (pauseFlag.value) {
+			const end = performance.now();
+			elapsedTimeMs.value += end - startTime;
+			startTime = 0;
+			pauseFlag.value = false;
+			store.isSolverRunning = false;
+			store.isSolverPaused = true;
+			return;
+		}
 
-    await invokes.gameSolveStep(currentIteration.value);
-    ++currentIteration.value;
-    exploitabilityUpdated = false;
+		await invokes.gameSolveStep(currentIteration.value);
+		++currentIteration.value;
+		exploitabilityUpdated = false;
 
-    if (currentIteration.value % 10 === 0) {
-      exploitability.value = Math.max(await invokes.gameExploitability(), 0);
-      exploitabilityUpdated = true;
-    }
-  }
+		if (currentIteration.value % 10 === 0) {
+			exploitability.value = Math.max(await invokes.gameExploitability(), 0);
+			exploitabilityUpdated = true;
+		}
+	}
 
-  if (!exploitabilityUpdated) {
-    exploitability.value = Math.max(await invokes.gameExploitability(), 0);
-  }
+	if (!exploitabilityUpdated) {
+		exploitability.value = Math.max(await invokes.gameExploitability(), 0);
+	}
 
-  store.isSolverRunning = false;
-  store.isFinalizing = true;
+	store.isSolverRunning = false;
+	store.isFinalizing = true;
 
-  await invokes.gameFinalize();
+	await invokes.gameFinalize();
 
-  store.isFinalizing = false;
-  store.isSolverFinished = true;
+	store.isFinalizing = false;
+	store.isSolverFinished = true;
 
-  const end = performance.now();
-  elapsedTimeMs.value += end - startTime;
+	const end = performance.now();
+	elapsedTimeMs.value += end - startTime;
 };
 </script>

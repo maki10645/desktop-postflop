@@ -194,8 +194,8 @@
 
 <script setup lang="ts">
 import { reactive, ref, toRefs, watch } from "vue";
-import { capitalize } from "../utils";
 import * as Types from "../result-types";
+import { capitalize } from "../utils";
 
 // import { Tippy } from "vue-tippy";
 // import { ComputerDesktopIcon } from "@heroicons/vue/24/solid";
@@ -205,41 +205,41 @@ import * as Types from "../result-types";
 // } from "@heroicons/vue/24/outline";
 
 const props = defineProps<{
-  displayMode: Types.DisplayMode;
-  chanceMode: string;
-  autoPlayerBasics: "oop" | "ip";
-  autoPlayerChance: "oop" | "ip";
-  copySuccess: number;
+	displayMode: Types.DisplayMode;
+	chanceMode: string;
+	autoPlayerBasics: "oop" | "ip";
+	autoPlayerChance: "oop" | "ip";
+	copySuccess: number;
 }>();
 
 const emit = defineEmits<{
-  (event: "update:display-mode", displayMode: Types.DisplayMode): void;
-  (event: "update:display-options", displayOptions: Types.DisplayOptions): void;
-  // (event: "copy-to-clipboard"): void;
-  // (event: "reset-copy-success"): void;
+	(event: "update:display-mode", displayMode: Types.DisplayMode): void;
+	(event: "update:display-options", displayOptions: Types.DisplayOptions): void;
+	// (event: "copy-to-clipboard"): void;
+	// (event: "reset-copy-success"): void;
 }>();
 
 const { chanceMode } = toRefs(props);
 let displayModeOld = "basics" as Types.DisplayMode;
 
 watch(chanceMode, (newValue, oldValue) => {
-  if (newValue && !oldValue) {
-    displayModeOld = props.displayMode;
-    emit("update:display-mode", "chance");
-  } else if (!newValue && oldValue) {
-    emit("update:display-mode", displayModeOld);
-  }
+	if (newValue && !oldValue) {
+		displayModeOld = props.displayMode;
+		emit("update:display-mode", "chance");
+	} else if (!newValue && oldValue) {
+		emit("update:display-mode", displayModeOld);
+	}
 });
 
 const displayOptions = reactive<Types.DisplayOptions>({
-  playerBasics: "auto",
-  playerChance: "auto",
-  barHeight: "normalized",
-  suit: "grouped",
-  strategy: "show",
-  contentBasics: "default",
-  contentGraphs: "eq",
-  chartChance: "strategy-combos",
+	playerBasics: "auto",
+	playerChance: "auto",
+	barHeight: "normalized",
+	suit: "grouped",
+	strategy: "show",
+	contentBasics: "default",
+	contentGraphs: "eq",
+	chartChance: "strategy-combos",
 });
 
 const strategyContentPair = ref("show,default");
@@ -247,49 +247,49 @@ const strategyContentPair = ref("show,default");
 const savedDisplayOptions = localStorage.getItem("display-options");
 
 if (savedDisplayOptions) {
-  const saved: Types.DisplayOptions = JSON.parse(savedDisplayOptions);
+	const saved: Types.DisplayOptions = JSON.parse(savedDisplayOptions);
 
-  if (Types.barHeightList.includes(saved?.barHeight)) {
-    displayOptions.barHeight = saved.barHeight;
-  }
-  if (Types.suitList.includes(saved?.suit)) {
-    displayOptions.suit = saved.suit;
-  }
-  if (Types.strategyList.includes(saved?.strategy)) {
-    displayOptions.strategy = saved.strategy;
-  }
-  if (Types.contentBasicsList.includes(saved?.contentBasics)) {
-    displayOptions.contentBasics = saved.contentBasics;
-  }
-  if (Types.contentGraphsList.includes(saved?.contentGraphs)) {
-    displayOptions.contentGraphs = saved.contentGraphs;
-  }
-  if (Types.chartChanceList.includes(saved?.chartChance)) {
-    displayOptions.chartChance = saved.chartChance;
-  }
+	if (Types.barHeightList.includes(saved?.barHeight)) {
+		displayOptions.barHeight = saved.barHeight;
+	}
+	if (Types.suitList.includes(saved?.suit)) {
+		displayOptions.suit = saved.suit;
+	}
+	if (Types.strategyList.includes(saved?.strategy)) {
+		displayOptions.strategy = saved.strategy;
+	}
+	if (Types.contentBasicsList.includes(saved?.contentBasics)) {
+		displayOptions.contentBasics = saved.contentBasics;
+	}
+	if (Types.contentGraphsList.includes(saved?.contentGraphs)) {
+		displayOptions.contentGraphs = saved.contentGraphs;
+	}
+	if (Types.chartChanceList.includes(saved?.chartChance)) {
+		displayOptions.chartChance = saved.chartChance;
+	}
 
-  strategyContentPair.value = [
-    displayOptions.strategy,
-    displayOptions.contentBasics,
-  ].join(",");
+	strategyContentPair.value = [
+		displayOptions.strategy,
+		displayOptions.contentBasics,
+	].join(",");
 
-  emit("update:display-options", displayOptions);
+	emit("update:display-options", displayOptions);
 }
 
 const updateDisplayMode = (displayMode: Types.DisplayMode) => {
-  if (displayMode !== "chance") {
-    displayModeOld = displayMode;
-  }
-  emit("update:display-mode", displayMode);
+	if (displayMode !== "chance") {
+		displayModeOld = displayMode;
+	}
+	emit("update:display-mode", displayMode);
 };
 
 const updateDisplayOptions = () => {
-  const options = displayOptions;
-  const [strategy, content] = strategyContentPair.value.split(",");
-  options.strategy = strategy as Types.DisplayOptions["strategy"];
-  options.contentBasics = content as Types.DisplayOptions["contentBasics"];
-  localStorage.setItem("display-options", JSON.stringify(options));
-  emit("update:display-options", options);
+	const options = displayOptions;
+	const [strategy, content] = strategyContentPair.value.split(",");
+	options.strategy = strategy as Types.DisplayOptions["strategy"];
+	options.contentBasics = content as Types.DisplayOptions["contentBasics"];
+	localStorage.setItem("display-options", JSON.stringify(options));
+	emit("update:display-options", options);
 };
 
 // const copyToClipboard = () => {

@@ -136,9 +136,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "../store";
-import { ranks, trimRegex, rangeRegex } from "../utils";
 import * as invokes from "../invokes";
+import { useStore } from "../store";
+import { rangeRegex, ranks, trimRegex } from "../utils";
 
 import DbItemPicker from "./DbItemPicker.vue";
 
@@ -147,13 +147,13 @@ const yellow500 = "#eab308";
 type DraggingMode = "none" | "enabling" | "disabling";
 
 const props = withDefaults(
-  defineProps<{ player: number; defaultText?: string }>(),
-  { defaultText: "" }
+	defineProps<{ player: number; defaultText?: string }>(),
+	{ defaultText: "" },
 );
 
 const emit = defineEmits<{
-  (event: "save"): void;
-  (event: "cancel"): void;
+	(event: "save"): void;
+	(event: "cancel"): void;
 }>();
 
 const store = useStore();
@@ -167,110 +167,109 @@ store.rangeCombos[props.player] = 0;
 let draggingMode: DraggingMode = "none";
 
 const cellText = (row: number, col: number) => {
-  const r1 = 13 - Math.min(row, col);
-  const r2 = 13 - Math.max(row, col);
-  return ranks[r1] + ranks[r2] + ["s", "", "o"][Math.sign(row - col) + 1];
+	const r1 = 13 - Math.min(row, col);
+	const r2 = 13 - Math.max(row, col);
+	return ranks[r1] + ranks[r2] + ["s", "", "o"][Math.sign(row - col) + 1];
 };
 
 const cellIndex = (row: number, col: number) => {
-  return 13 * (row - 1) + col - 1;
+	return 13 * (row - 1) + col - 1;
 };
 
 const cellValue = (row: number, col: number) => {
-  return store.ranges[props.player][cellIndex(row, col)];
+	return store.ranges[props.player][cellIndex(row, col)];
 };
 
 const onUpdate = async () => {
-  store.rangeText[props.player] = await invokes.rangeToString(props.player);
-  store.rangeCombos[props.player] = await invokes.rangeNumCombos(props.player);
-  rangeTextError.value = "";
+	store.rangeText[props.player] = await invokes.rangeToString(props.player);
+	store.rangeCombos[props.player] = await invokes.rangeNumCombos(props.player);
+	rangeTextError.value = "";
 };
 
 const update = async (row: number, col: number, weight: number) => {
-  const idx = 13 * (row - 1) + col - 1;
-  await invokes.rangeUpdate(props.player, row, col, weight / 100);
-  store.ranges[props.player][idx] = weight;
-  await onUpdate();
+	const idx = 13 * (row - 1) + col - 1;
+	await invokes.rangeUpdate(props.player, row, col, weight / 100);
+	store.ranges[props.player][idx] = weight;
+	await onUpdate();
 };
 
 const onRangeTextChange = async () => {
-  const trimmed = store.rangeText[props.player].replace(trimRegex, "$1").trim();
-  const ranges = trimmed.split(",");
+	const trimmed = store.rangeText[props.player].replace(trimRegex, "$1").trim();
+	const ranges = trimmed.split(",");
 
-  if (ranges[ranges.length - 1] === "") {
-    ranges.pop();
-  }
+	if (ranges[ranges.length - 1] === "") {
+		ranges.pop();
+	}
 
-  for (const range of ranges) {
-    if (!rangeRegex.test(range)) {
-      rangeTextError.value = `Failed to parse range: ${
-        range || "(empty string)"
-      }`;
-      return;
-    }
-  }
+	for (const range of ranges) {
+		if (!rangeRegex.test(range)) {
+			rangeTextError.value = `Failed to parse range: ${
+				range || "(empty string)"
+			}`;
+			return;
+		}
+	}
 
-  const errorString = await invokes.rangeFromString(props.player, trimmed);
+	const errorString = await invokes.rangeFromString(props.player, trimmed);
 
-  if (errorString) {
-    rangeTextError.value = errorString;
-  } else {
-    const weights = await invokes.rangeGetWeights(props.player);
-    for (let i = 0; i < 13 * 13; ++i) {
-      store.ranges[props.player][i] = weights[i] * 100;
-    }
-    await onUpdate();
-  }
+	if (errorString) {
+		rangeTextError.value = errorString;
+	} else {
+		const weights = await invokes.rangeGetWeights(props.player);
+		for (let i = 0; i < 13 * 13; ++i) {
+			store.ranges[props.player][i] = weights[i] * 100;
+		}
+		await onUpdate();
+	}
 };
 
 const dragStart = (row: number, col: number) => {
-  const idx = 13 * (row - 1) + col - 1;
+	const idx = 13 * (row - 1) + col - 1;
 
-  if (store.ranges[props.player][idx] !== weight.value) {
-    draggingMode = "enabling";
-    update(row, col, weight.value);
-  } else {
-    draggingMode = "disabling";
-    update(row, col, 0);
-  }
+	if (store.ranges[props.player][idx] !== weight.value) {
+		draggingMode = "enabling";
+		update(row, col, weight.value);
+	} else {
+		draggingMode = "disabling";
+		update(row, col, 0);
+	}
 };
 
 const dragEnd = () => {
-  draggingMode = "none";
+	draggingMode = "none";
 };
 
 const mouseEnter = (row: number, col: number) => {
-  if (draggingMode === "enabling") {
-    update(row, col, weight.value);
-  } else if (draggingMode === "disabling") {
-    update(row, col, 0);
-  }
+	if (draggingMode === "enabling") {
+		update(row, col, weight.value);
+	} else if (draggingMode === "disabling") {
+		update(row, col, 0);
+	}
 };
 
 const onWeightChange = () => {
-  weight.value = Math.round(Math.max(0, Math.min(100, weight.value)));
+	weight.value = Math.round(Math.max(0, Math.min(100, weight.value)));
 };
 
 const clearRange = async () => {
-  await invokes.rangeClear(props.player);
-  store.ranges[props.player].fill(0);
-  store.rangeText[props.player] = "";
-  rangeTextError.value = "";
-  weight.value = 100;
-  store.rangeCombos[props.player] = 0;
+	await invokes.rangeClear(props.player);
+	store.ranges[props.player].fill(0);
+	store.rangeText[props.player] = "";
+	rangeTextError.value = "";
+	weight.value = 100;
+	store.rangeCombos[props.player] = 0;
 };
 
 const invertRange = async () => {
-  await invokes.rangeInvert(props.player);
-  for (let i = 0; i < 13 * 13; ++i) {
-    store.ranges[props.player][i] = 100 - store.ranges[props.player][i];
-  }
-  await onUpdate();
+	await invokes.rangeInvert(props.player);
+	for (let i = 0; i < 13 * 13; ++i) {
+		store.ranges[props.player][i] = 100 - store.ranges[props.player][i];
+	}
+	await onUpdate();
 };
 
 const loadRange = (rangeStr: unknown) => {
-  store.rangeText[props.player] = String(rangeStr);
-  onRangeTextChange();
+	store.rangeText[props.player] = String(rangeStr);
+	onRangeTextChange();
 };
-
 </script>

@@ -1,6 +1,6 @@
 [package]
 name = "desktop-postflop"
-version = "0.2.7-a"
+version = "0.2.7-b"
 description = "The most advanced open-source GTO solver"
 authors = ["Wataru Inariba"]
 license = "AGPL-3.0-or-later"
@@ -18,7 +18,10 @@ serde_json = "1.0.107"
 serde = { version = "1.0.188", features = ["derive"] }
 tauri = { version = "2", features = [] }
 #postflop-solver = { git = "https://github.com/b-inary/postflop-solver", features = ["custom-alloc"] }
-postflop-solver = { git = "https://github.com/null22277/postflop-solver", branch = "10-26-2024", features = ["custom-alloc", "zstd"] }
+postflop-solver = { git = "https://github.com/null22277/postflop-solver", branch = "10-26-2024", features = [
+  "custom-alloc",
+  "zstd",
+] }
 rayon = "1.8.0"
 sysinfo = "0.29.10"
 tauri-plugin-dialog = "2"
@@ -29,10 +32,10 @@ tauri-plugin-os = "2"
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
-default = [ "custom-protocol" ]
+default = ["custom-protocol"]
 # this feature is used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
-custom-protocol = [ "tauri/custom-protocol" ]
+custom-protocol = ["tauri/custom-protocol"]
 
 [profile.release]
 codegen-units = 1

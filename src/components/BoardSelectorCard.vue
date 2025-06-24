@@ -39,16 +39,16 @@
 import { cardText } from "../utils";
 
 interface Props {
-  cardId: number;
-  isSelected?: boolean;
-  width?: string;
-  fontSize?: string;
+	cardId: number;
+	isSelected?: boolean;
+	width?: string;
+	fontSize?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isSelected: false,
-  width: "40px",
-  fontSize: "1rem",
+	isSelected: false,
+	width: "40px",
+	fontSize: "1rem",
 });
 
 const { rank, suit, colorClass } = cardText(props.cardId);

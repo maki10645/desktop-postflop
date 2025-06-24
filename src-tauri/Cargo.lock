@@ -784,7 +784,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-postflop"
-version = "0.2.7-a"
+version = "0.2.7-b"
 dependencies = [
  "postflop-solver",
  "rayon",

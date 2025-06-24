@@ -34,7 +34,7 @@ const props = defineProps<{ player: number }>();
 const store = useStore();
 
 const cellValue = (row: number, col: number) => {
-  const cellIndex = (row - 1) * 13 + (col - 1);
-  return store.ranges[props.player][cellIndex];
+	const cellIndex = (row - 1) * 13 + (col - 1);
+	return store.ranges[props.player][cellIndex];
 };
 </script>

@@ -47,59 +47,59 @@ const config = useConfigStore();
 const boardText = ref("");
 
 const toggleCard = (cardId: number, updateText = true) => {
-  if (config.board.includes(cardId)) {
-    config.board = config.board.filter((card) => card !== cardId);
-  } else if (config.board.length < 5) {
-    config.board.push(cardId);
-    if (config.board.length <= 3) {
-      config.board.sort((a, b) => b - a);
-    }
-  }
+	if (config.board.includes(cardId)) {
+		config.board = config.board.filter((card) => card !== cardId);
+	} else if (config.board.length < 5) {
+		config.board.push(cardId);
+		if (config.board.length <= 3) {
+			config.board.sort((a, b) => b - a);
+		}
+	}
 
-  if (updateText) {
-    setBoardTextFromButtons();
-  }
+	if (updateText) {
+		setBoardTextFromButtons();
+	}
 };
 
 const setBoardTextFromButtons = () => {
-  boardText.value = config.board
-    .map(cardText)
-    .map(({ rank, suitLetter }) => rank + suitLetter)
-    .join(", ");
+	boardText.value = config.board
+		.map(cardText)
+		.map(({ rank, suitLetter }) => rank + suitLetter)
+		.join(", ");
 };
 
 const onBoardTextChange = () => {
-  config.board = [];
+	config.board = [];
 
-  const cardIds = boardText.value
-    // Allow pasting in things like [Ah Kd Qc], by reformatting to Ah,Kd,Qc
-    .trim()
-    .replace(/[^A-Za-z0-9\s,]/g, "")
-    .replace(/\s+/g, ",")
-    .split(",")
-    .map(parseCardString)
-    .filter((cardId): cardId is number => cardId !== null);
+	const cardIds = boardText.value
+		// Allow pasting in things like [Ah Kd Qc], by reformatting to Ah,Kd,Qc
+		.trim()
+		.replace(/[^A-Za-z0-9\s,]/g, "")
+		.replace(/\s+/g, ",")
+		.split(",")
+		.map(parseCardString)
+		.filter((cardId): cardId is number => cardId !== null);
 
-  new Set(cardIds).forEach((cardId) => toggleCard(cardId, false));
-  setBoardTextFromButtons();
+	new Set(cardIds).forEach((cardId) => toggleCard(cardId, false));
+	setBoardTextFromButtons();
 };
 
 const clearBoard = () => {
-  config.board = [];
-  setBoardTextFromButtons();
+	config.board = [];
+	setBoardTextFromButtons();
 };
 
 const generateRandomBoard = () => {
-  config.board = [];
+	config.board = [];
 
-  while (config.board.length < 3) {
-    const randomCard = Math.floor(Math.random() * 52);
-    if (!config.board.includes(randomCard)) {
-      config.board.push(randomCard);
-    }
-  }
+	while (config.board.length < 3) {
+		const randomCard = Math.floor(Math.random() * 52);
+		if (!config.board.includes(randomCard)) {
+			config.board.push(randomCard);
+		}
+	}
 
-  config.board.sort((a, b) => b - a);
-  setBoardTextFromButtons();
+	config.board.sort((a, b) => b - a);
+	setBoardTextFromButtons();
 };
 </script>
