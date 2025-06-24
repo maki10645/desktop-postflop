@@ -43,7 +43,7 @@
   },
   "productName": "Desktop Postflop",
   "mainBinaryName": "Desktop Postflop",
-  "version": "0.2.7-a",
+  "version": "0.2.8",
   "identifier": "b-inary.desktop-postflop",
   "plugins": {},
   "app": {
