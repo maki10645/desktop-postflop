@@ -2,9 +2,9 @@ use crate::range::*;
 use postflop_solver::*;
 use rayon::ThreadPool;
 use serde::Serialize;
-use std::sync::Mutex;
 use std::fs::File;
 use std::io::Write;
+use std::sync::Mutex;
 
 #[inline]
 fn decode_action(action: &str) -> Action {
@@ -557,75 +557,65 @@ pub fn game_get_chance_reports(
 
 #[tauri::command]
 pub fn export_weights(
-    game_state: tauri::State<Mutex<PostFlopGame>>,
+    range_state: tauri::State<Mutex<RangeManager>>,
     player: usize,
     file_path: String,
 ) -> Result<(), String> {
-    let game = game_state.lock().unwrap();
-    
-    // Get current weights for the specified player
-    let weights = game.weights(player);
-    let private_cards = game.private_cards(player);
-    
+    let range_manager = range_state.lock().unwrap();
+    let range = &range_manager.0[player];
+
     // Rank names for converting to hand notation
-    let ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"];
-    
-    // Group weights by hand type (AA, AKs, AKo etc)
-    let mut hand_groups: std::collections::HashMap<String, Vec<f32>> = std::collections::HashMap::new();
-    
-    // Process each hand combination and group by hand type
-    for (i, &weight) in weights.iter().enumerate() {
-        if weight > 0.0 {
-            let (card1, card2) = private_cards[i];
-            let rank1 = (card1 >> 2) as usize;
-            let rank2 = (card2 >> 2) as usize;
-            let suit1 = card1 & 3;
-            let suit2 = card2 & 3;
-            
-            let hand_str = if rank1 == rank2 {
+    let ranks = [
+        "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A",
+    ];
+
+    let mut hand_weights = Vec::new();
+
+    // Iterate through all possible hand combinations in range format
+    for row in 0..13 {
+        for col in 0..13 {
+            let rank1 = 12 - row;
+            let rank2 = 12 - col;
+
+            let weight = if row == col {
                 // Pair (e.g., AA, KK)
-                format!("{}{}", ranks[rank1], ranks[rank2])
-            } else if suit1 == suit2 {
-                // Suited (e.g., AKs)
-                if rank1 > rank2 {
+                range.get_weight_pair(rank1 as u8)
+            } else if row < col {
+                // Suited (e.g., AKs) - rank1 is higher, rank2 is lower
+                range.get_weight_suited(rank1 as u8, rank2 as u8)
+            } else {
+                // Offsuit (e.g., AKo) - rank2 is higher, rank1 is lower
+                range.get_weight_offsuit(rank2 as u8, rank1 as u8)
+            };
+
+            if weight > 0.0 {
+                let hand_str = if row == col {
+                    // Pair
+                    format!("{}{}", ranks[rank1], ranks[rank2])
+                } else if row < col {
+                    // Suited - higher rank first
                     format!("{}{}s", ranks[rank1], ranks[rank2])
                 } else {
-                    format!("{}{}s", ranks[rank2], ranks[rank1])
-                }
-            } else {
-                // Offsuit (e.g., AKo)
-                if rank1 > rank2 {
-                    format!("{}{}o", ranks[rank1], ranks[rank2])
-                } else {
+                    // Offsuit - higher rank first (rank2 > rank1 when row > col)
                     format!("{}{}o", ranks[rank2], ranks[rank1])
-                }
-            };
-            
-            hand_groups.entry(hand_str).or_insert_with(Vec::new).push(weight);
+                };
+
+                hand_weights.push(format!("{}:{:.3}", hand_str, weight));
+            }
         }
     }
-    
-    // Calculate average weight for each hand type
-    let mut hand_weights = Vec::new();
-    for (hand, weights) in hand_groups {
-        let avg_weight: f32 = weights.iter().sum::<f32>() / weights.len() as f32;
-        if avg_weight > 0.0 {
-            hand_weights.push(format!("{}:{:.3}", hand, avg_weight));
-        }
-    }
-    
+
     // Sort hands for consistent output
     hand_weights.sort();
-    
+
     // Create file content
     let content = hand_weights.join(",");
-    
+
     // Write to file
-    let mut file = File::create(&file_path)
-        .map_err(|e| format!("Failed to create file: {}", e))?;
-    
+    let mut file = File::create(&file_path).map_err(|e| format!("Failed to create file: {}", e))?;
+
     file.write_all(content.as_bytes())
         .map_err(|e| format!("Failed to write to file: {}", e))?;
-    
+
     Ok(())
 }
